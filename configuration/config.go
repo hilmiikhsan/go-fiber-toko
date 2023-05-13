@@ -3,6 +3,7 @@ package configuration
 import (
 	"os"
 
+	"github.com/hilmiikhsan/go_rest_api/exception"
 	"github.com/joho/godotenv"
 )
 
@@ -19,7 +20,6 @@ func (config *configImpl) Get(key string) string {
 
 func New(filenames ...string) Config {
 	err := godotenv.Load(filenames...)
-	if err != nil {
-
-	}
+	exception.PanicLogging(err)
+	return &configImpl{}
 }
