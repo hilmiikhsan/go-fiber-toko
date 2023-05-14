@@ -9,11 +9,11 @@ CREATE TABLE IF NOT EXISTS user
     tanggal_lahir DATE NOT NULL,
     jenis_kelamin VARCHAR(255) NOT NULL,
     tentang TEXT NOT NULL,
-    pekerikan VARCHAR(255) NOT NULL,
+    pekerjaan VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL,
     id_provinsi VARCHAR(255) NOT NULL,
     id_kota VARCHAR(255) NOT NULL,
-    isAdmin BOOLEAN NOT NULL,
+    isAdmin BOOLEAN NOT NULL DEFAULT false,
     updated_at DATE NOT NULL,
     created_at DATE NOT NULL
 );
