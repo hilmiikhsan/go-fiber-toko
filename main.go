@@ -5,9 +5,11 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/hilmiikhsan/go_rest_api/configuration"
+	"github.com/hilmiikhsan/go_rest_api/controller/auth"
 	"github.com/hilmiikhsan/go_rest_api/controller/user"
 	"github.com/hilmiikhsan/go_rest_api/exception"
 	userRepo "github.com/hilmiikhsan/go_rest_api/repository/user"
+	authService "github.com/hilmiikhsan/go_rest_api/service/auth"
 	userService "github.com/hilmiikhsan/go_rest_api/service/user"
 )
 
@@ -24,10 +26,12 @@ func main() {
 	// httpBinRestClient := restclient.NewHttpBinRestClient()
 
 	// service
+	authService := authService.NewAuthServiceInterface(&userRepository)
 	userService := userService.NewUserServiceInterface(&userRepository, redis)
 	// httpBinService := httpbin.NewHttpBinServiceInterface(&httpBinRestClient)
 
 	// controller
+	authController := auth.NewAuthController(&authService, config)
 	_ = user.NewUserController(&userService, config)
 
 	// setup fiber
@@ -36,6 +40,7 @@ func main() {
 	app.Use(cors.New())
 
 	// routing
+	authController.Route(app)
 	// userController.
 
 	//start app

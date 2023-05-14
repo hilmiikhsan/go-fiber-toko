@@ -4,7 +4,7 @@ import "time"
 
 type User struct {
 	ID           int       `gorm:"primaryKey;column:id;autoIncrement;type:int(11);not null"`
-	Name         string    `gorm:"column:name;type:varchar(255);not null"`
+	Nama         string    `gorm:"column:nama;type:varchar(255);not null"`
 	KataSandi    string    `gorm:"column:kata_sandi;type:varchar(255);not null"`
 	NoTelp       string    `gorm:"column:notelp;type:varchar(255);not null;unique"`
 	TanggalLahir time.Time `gorm:"column:tanggal_lahir;type:date;not null"`
@@ -17,7 +17,6 @@ type User struct {
 	IsAdmin      bool      `gorm:"column:isAdmin;default:false;not null"`
 	UpdatedAt    time.Time `gorm:"column:updated_at;type:date;not null"`
 	CreatedAt    time.Time `gorm:"column:created_at;type:date;not null"`
-	// Toko         []Toko    `gorm:"ForeignKey:IdUser;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;references:ID"`
 }
 
 func (User) TableName() string {
