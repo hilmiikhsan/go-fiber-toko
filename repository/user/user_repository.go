@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"errors"
 
 	"github.com/hilmiikhsan/go_rest_api/entity"
 	"gorm.io/gorm"
@@ -34,4 +35,14 @@ func (userRepository *userRepository) RegisterUser(ctx context.Context, user ent
 	}
 
 	return nil
+}
+
+func (userRepository *userRepository) FindByNoTelp(ctx context.Context, noTelp string) (entity.User, error) {
+	user := entity.User{}
+	result := userRepository.DB.WithContext(ctx).Where("user.notelp = ?", noTelp).Find(&user)
+	if result.RowsAffected == 0 {
+		return entity.User{}, errors.New("User not found")
+	}
+
+	return user, nil
 }

@@ -9,4 +9,5 @@ import (
 type UserRepositoryInterface interface {
 	FindByEmail(ctx context.Context, email string) (entity.User, error)
 	RegisterUser(ctx context.Context, user entity.User) error
+	FindByNoTelp(ctx context.Context, noTelp string) (entity.User, error)
 }

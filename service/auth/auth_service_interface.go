@@ -7,5 +7,6 @@ import (
 )
 
 type AuthServiceInterface interface {
-	Register(ctx context.Context, model model.AuthModel) (string, error)
+	Register(ctx context.Context, user model.AuthRegisterModel) (string, error)
+	Login(ctx context.Context, user model.AuthLoginModel) (model.AuthResponseModel, error)
 }
