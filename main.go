@@ -17,7 +17,7 @@ func main() {
 	// setup configuration
 	config := configuration.New()
 	db := configuration.NewDatabase(config)
-	redis := configuration.NewRedis(config)
+	// redis := configuration.NewRedis(config)
 
 	// repository
 	userRepository := userRepo.NewUserRepositoryInterface(db)
@@ -27,12 +27,12 @@ func main() {
 
 	// service
 	authService := authService.NewAuthServiceInterface(&userRepository)
-	userService := userService.NewUserServiceInterface(&userRepository, redis)
+	userService := userService.NewUserServiceInterface(&userRepository)
 	// httpBinService := httpbin.NewHttpBinServiceInterface(&httpBinRestClient)
 
 	// controller
 	authController := auth.NewAuthController(&authService, config)
-	_ = user.NewUserController(&userService, config)
+	userController := user.NewUserController(&userService, config)
 
 	// setup fiber
 	app := fiber.New()
@@ -41,7 +41,7 @@ func main() {
 
 	// routing
 	authController.Route(app)
-	// userController.
+	userController.Route(app)
 
 	//start app
 	err := app.Listen(config.Get("SERVER.PORT"))

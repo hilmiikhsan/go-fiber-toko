@@ -32,12 +32,23 @@ func (controller AuthController) Route(app *fiber.App) {
 
 func (controller AuthController) Register(c *fiber.Ctx) error {
 	var request model.AuthRegisterModel
+	var errMessage []map[string]interface{}
 	err := c.BodyParser(&request)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
 			Status:  false,
 			Message: "Failed to POST data",
 			Errors:  []string{err.Error()},
+			Data:    nil,
+		})
+	}
+
+	errMessage = common.Validate(request)
+	if len(errMessage) > 0 {
+		return c.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Status:  false,
+			Message: "Failed to POST data",
+			Errors:  errMessage,
 			Data:    nil,
 		})
 	}
@@ -83,12 +94,23 @@ func (controller AuthController) Register(c *fiber.Ctx) error {
 
 func (controller AuthController) Login(c *fiber.Ctx) error {
 	var request model.AuthLoginModel
+	var errMessage []map[string]interface{}
 	err := c.BodyParser(&request)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
 			Status:  false,
 			Message: "Failed to POST data",
 			Errors:  []string{err.Error()},
+			Data:    nil,
+		})
+	}
+
+	errMessage = common.Validate(request)
+	if len(errMessage) > 0 {
+		return c.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Status:  false,
+			Message: "Failed to POST data",
+			Errors:  errMessage,
 			Data:    nil,
 		})
 	}
@@ -112,7 +134,7 @@ func (controller AuthController) Login(c *fiber.Ctx) error {
 		})
 	}
 
-	token := common.GenerateToken(response.NoTelp, controller.Config)
+	token := common.GenerateToken(response.Email, response.NoTelp, controller.Config)
 	resultWithToken := map[string]interface{}{
 		"token": token,
 	}

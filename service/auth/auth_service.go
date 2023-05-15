@@ -61,7 +61,9 @@ func (authService *authService) Register(ctx context.Context, user model.AuthReg
 		return "", err
 	}
 
-	return constants.RegisterSuccess, nil
+	msgResponse := "Register Succeed"
+
+	return msgResponse, nil
 }
 
 func (authService *authService) Login(ctx context.Context, user model.AuthLoginModel) (model.AuthResponseModel, error) {
@@ -119,7 +121,6 @@ func (authService *authService) Login(ctx context.Context, user model.AuthLoginM
 			ProvinceID: regency.ProvinceID,
 			Name:       regency.Name,
 		},
-		Token: "",
 	}
 
 	return response, nil
