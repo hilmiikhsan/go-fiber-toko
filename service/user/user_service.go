@@ -32,33 +32,33 @@ func (userService *userService) GetProfile(ctx context.Context, userID int) (mod
 
 	data, err := userService.UserRepositoryInterface.FindByID(ctx, userID)
 	if err != nil {
-		return model.UserModel{}, err
+		return response, err
 	}
 
 	urlProvinsi := "https://hilmiikhsan.github.io/api-wilayah-indonesia/api/province/" + data.IdProvinsi + ".json"
 	provinceData, err := http.Get(urlProvinsi)
 	if err != nil {
-		return model.UserModel{}, err
+		return response, err
 	}
 	defer provinceData.Body.Close()
 
 	var province model.Provinsi
 	err = json.NewDecoder(provinceData.Body).Decode(&province)
 	if err != nil {
-		return model.UserModel{}, err
+		return response, err
 	}
 
 	urlKota := "https://hilmiikhsan.github.io/api-wilayah-indonesia/api/regency/" + data.IdKota + ".json"
 	regencyData, err := http.Get(urlKota)
 	if err != nil {
-		return model.UserModel{}, err
+		return response, err
 	}
 	defer regencyData.Body.Close()
 
 	var regency model.Kota
 	err = json.NewDecoder(regencyData.Body).Decode(&regency)
 	if err != nil {
-		return model.UserModel{}, err
+		return response, err
 	}
 
 	response = model.UserModel{

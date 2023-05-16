@@ -2,6 +2,7 @@ package toko
 
 import (
 	"context"
+	"errors"
 
 	"github.com/hilmiikhsan/go_rest_api/entity"
 	"gorm.io/gorm"
@@ -24,4 +25,14 @@ func (tokoRepository *tokoRepository) Insert(ctx context.Context, tx *gorm.DB, t
 	}
 
 	return nil
+}
+
+func (tokoRepository *tokoRepository) FindByID(ctx context.Context, id int) (entity.Toko, error) {
+	toko := entity.Toko{}
+	result := tokoRepository.DB.WithContext(ctx).Where("toko.id_user = ?", id).Find(&toko)
+	if result.RowsAffected == 0 {
+		return entity.Toko{}, errors.New("record not found")
+	}
+
+	return toko, nil
 }

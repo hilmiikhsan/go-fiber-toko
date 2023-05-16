@@ -9,4 +9,5 @@ import (
 
 type TokoRepositoryInterface interface {
 	Insert(ctx context.Context, tx *gorm.DB, toko entity.Toko) error
+	FindByID(ctx context.Context, id int) (entity.Toko, error)
 }
