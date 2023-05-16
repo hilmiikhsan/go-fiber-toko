@@ -115,3 +115,26 @@ func (alamatService *alamatService) UpdateAlamatByID(ctx context.Context, id, us
 
 	return nil
 }
+
+func (alamatService *alamatService) DeleteAlamatByID(ctx context.Context, id, userID int) error {
+	alamatData, err := alamatService.AlamatRepositoryInterface.FindByID(ctx, id, userID)
+	if err != nil {
+		return err
+	}
+
+	tx := alamatService.DB.Begin()
+
+	err = alamatService.AlamatRepositoryInterface.Delete(ctx, tx, alamatData, id, userID)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	err = tx.Commit().Error
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return nil
+}

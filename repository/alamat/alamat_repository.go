@@ -61,3 +61,12 @@ func (alamatRepository *alamatRepository) Update(ctx context.Context, tx *gorm.D
 
 	return nil
 }
+
+func (alamatRepository *alamatRepository) Delete(ctx context.Context, tx *gorm.DB, alamat entity.Alamat, id, userID int) error {
+	err := tx.WithContext(ctx).Where("alamat.id = ?", id).Where("alamat.id_user = ?", userID).Delete(&alamat).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

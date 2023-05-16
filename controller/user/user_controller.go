@@ -35,6 +35,7 @@ func (controller UserController) Route(app *fiber.App) {
 	app.Get("/user/alamat", middleware.AuthenticateJWT(controller.Config), controller.GetAllAlamat)
 	app.Get("/user/alamat/:id", middleware.AuthenticateJWT(controller.Config), controller.GetAlamatByID)
 	app.Put("/user/alamat/:id", middleware.AuthenticateJWT(controller.Config), controller.UpdateAlamatByID)
+	app.Delete("/user/alamat/:id", middleware.AuthenticateJWT(controller.Config), controller.DeleteAlamatByID)
 }
 
 func (controller UserController) GetProfile(c *fiber.Ctx) error {
@@ -272,6 +273,46 @@ func (controller UserController) UpdateAlamatByID(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(model.GeneralResponse{
 		Status:  true,
 		Message: "Succeed to PUT data",
+		Errors:  nil,
+		Data:    "",
+	})
+}
+
+func (controller UserController) DeleteAlamatByID(c *fiber.Ctx) error {
+	userID := c.Locals("id").(int)
+	idStr := c.Params("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Status:  false,
+			Message: "Failed to DELETE data",
+			Errors:  []string{err.Error()},
+			Data:    nil,
+		})
+	}
+
+	err = controller.AlamatServiceInterface.DeleteAlamatByID(c.Context(), id, userID)
+	if err != nil {
+		if strings.Contains(err.Error(), constants.ErrRecordNotFound.Error()) {
+			return c.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+				Status:  false,
+				Message: "Failed to DELETE data",
+				Errors:  []string{err.Error()},
+				Data:    nil,
+			})
+		}
+
+		return c.Status(fiber.StatusInternalServerError).JSON(model.GeneralResponse{
+			Status:  false,
+			Message: "Failed to DELETE data",
+			Errors:  []string{err.Error()},
+			Data:    nil,
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(model.GeneralResponse{
+		Status:  true,
+		Message: "Succeed to DELETE data",
 		Errors:  nil,
 		Data:    "",
 	})
