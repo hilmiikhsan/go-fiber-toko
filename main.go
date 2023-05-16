@@ -8,8 +8,10 @@ import (
 	"github.com/hilmiikhsan/go_rest_api/controller/auth"
 	"github.com/hilmiikhsan/go_rest_api/controller/user"
 	"github.com/hilmiikhsan/go_rest_api/exception"
+	alamatRepo "github.com/hilmiikhsan/go_rest_api/repository/alamat"
 	tokoRepo "github.com/hilmiikhsan/go_rest_api/repository/toko"
 	userRepo "github.com/hilmiikhsan/go_rest_api/repository/user"
+	alamatService "github.com/hilmiikhsan/go_rest_api/service/alamat"
 	authService "github.com/hilmiikhsan/go_rest_api/service/auth"
 	userService "github.com/hilmiikhsan/go_rest_api/service/user"
 )
@@ -23,6 +25,7 @@ func main() {
 	// repository
 	userRepository := userRepo.NewUserRepositoryInterface(db)
 	tokoRepository := tokoRepo.NewTokoRepositoryInterface(db)
+	alamatRepository := alamatRepo.NewAlamatRepositoryInterface(db)
 
 	// rest client
 	// httpBinRestClient := restclient.NewHttpBinRestClient()
@@ -30,11 +33,12 @@ func main() {
 	// service
 	authService := authService.NewAuthServiceInterface(&userRepository, &tokoRepository, db)
 	userService := userService.NewUserServiceInterface(&userRepository, db)
+	alamatService := alamatService.NewAlamatServiceInterface(&alamatRepository, db)
 	// httpBinService := httpbin.NewHttpBinServiceInterface(&httpBinRestClient)
 
 	// controller
 	authController := auth.NewAuthController(&authService, config)
-	userController := user.NewUserController(&userService, config)
+	userController := user.NewUserController(&userService, config, &alamatService)
 
 	// setup fiber
 	app := fiber.New()
