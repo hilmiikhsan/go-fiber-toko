@@ -18,3 +18,9 @@ type GetAlamatModel struct {
 	NoTelp       string `json:"no_telp"`
 	DetailAlamat string `json:"detail_alamat"`
 }
+
+type UpdateAlamatModel struct {
+	NamaPenerima string `json:"nama_penerima" validate:"required"`
+	NoTelp       string `json:"no_telp" validate:"required"`
+	DetailAlamat string `json:"detail_alamat" validate:"required"`
+}

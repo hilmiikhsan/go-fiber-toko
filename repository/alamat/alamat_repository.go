@@ -47,8 +47,17 @@ func (alamatRepository *alamatRepository) FindByID(ctx context.Context, id, user
 	alamat := entity.Alamat{}
 	result := alamatRepository.DB.WithContext(ctx).Where("alamat.id = ?", id).Where("alamat.id_user = ?", userID).Find(&alamat)
 	if result.RowsAffected == 0 {
-		return alamat, errors.New("Alamat not found")
+		return alamat, errors.New("record not found")
 	}
 
 	return alamat, nil
+}
+
+func (alamatRepository *alamatRepository) Update(ctx context.Context, tx *gorm.DB, alamat entity.Alamat, id, userID int) error {
+	err := tx.WithContext(ctx).Where("alamat.id = ?", id).Where("alamat.id_user = ?", userID).Updates(&alamat).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

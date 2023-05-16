@@ -86,3 +86,32 @@ func (alamatService *alamatService) GetAlamatByID(ctx context.Context, id, userI
 
 	return tmpAlamatData, nil
 }
+
+func (alamatService *alamatService) UpdateAlamatByID(ctx context.Context, id, userID int, alamat model.UpdateAlamatModel) error {
+	alamatData, err := alamatService.AlamatRepositoryInterface.FindByID(ctx, id, userID)
+	if err != nil {
+		return err
+	}
+
+	tx := alamatService.DB.Begin()
+
+	alamatModel := entity.Alamat{
+		NamaPenerima: alamat.NamaPenerima,
+		NoTelp:       alamat.NoTelp,
+		DetailAlamat: alamat.DetailAlamat,
+	}
+
+	err = alamatService.AlamatRepositoryInterface.Update(ctx, tx, alamatModel, alamatData.ID, alamatData.IdUser)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	err = tx.Commit().Error
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return nil
+}
