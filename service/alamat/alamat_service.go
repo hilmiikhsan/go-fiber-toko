@@ -46,3 +46,24 @@ func (alamatService *alamatService) CreateAlamat(ctx context.Context, alamat mod
 
 	return nil
 }
+
+func (alamatService *alamatService) GetAllAlamat(ctx context.Context, params *struct{ model.ParamsModel }, userID int) ([]model.GetAllAlamatModel, error) {
+	tmpAlamatData := []model.GetAllAlamatModel{}
+
+	data, err := alamatService.AlamatRepositoryInterface.FindAll(ctx, params, userID)
+	if err != nil {
+		return tmpAlamatData, err
+	}
+
+	for _, x := range data {
+		tmpAlamatData = append(tmpAlamatData, model.GetAllAlamatModel{
+			ID:           x.ID,
+			JudulAlamat:  x.JudulAlamat,
+			NamaPenerima: x.NamaPenerima,
+			NoTelp:       x.NoTelp,
+			DetailAlamat: x.DetailAlamat,
+		})
+	}
+
+	return tmpAlamatData, nil
+}

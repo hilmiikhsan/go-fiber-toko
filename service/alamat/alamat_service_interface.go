@@ -8,4 +8,5 @@ import (
 
 type AlamatServiceInterface interface {
 	CreateAlamat(ctx context.Context, alamat model.AlamatModel, userID int) error
+	GetAllAlamat(ctx context.Context, params *struct{ model.ParamsModel }, userID int) ([]model.GetAllAlamatModel, error)
 }

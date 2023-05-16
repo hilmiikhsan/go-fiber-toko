@@ -28,6 +28,7 @@ func (controller UserController) Route(app *fiber.App) {
 	app.Get("/user", middleware.AuthenticateJWT(controller.Config), controller.GetProfile)
 	app.Put("/user", middleware.AuthenticateJWT(controller.Config), controller.UpdateProfile)
 	app.Post("/user/alamat", middleware.AuthenticateJWT(controller.Config), controller.CreateAlamat)
+	app.Get("/user/alamat", middleware.AuthenticateJWT(controller.Config), controller.GetAllAlamat)
 }
 
 func (controller UserController) GetProfile(c *fiber.Ctx) error {
@@ -132,5 +133,38 @@ func (controller UserController) CreateAlamat(c *fiber.Ctx) error {
 		Message: "Succeed to POST data",
 		Errors:  nil,
 		Data:    1,
+	})
+}
+
+func (controller UserController) GetAllAlamat(c *fiber.Ctx) error {
+	userID := c.Locals("id").(int)
+	params := new(struct {
+		model.ParamsModel
+	})
+	err := c.QueryParser(params)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Status:  false,
+			Message: "Failed to GET data",
+			Errors:  []string{err.Error()},
+			Data:    nil,
+		})
+	}
+
+	data, err := controller.AlamatServiceInterface.GetAllAlamat(c.Context(), params, userID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(model.GeneralResponse{
+			Status:  false,
+			Message: "Failed to GET data",
+			Errors:  []string{err.Error()},
+			Data:    nil,
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(model.GeneralResponse{
+		Status:  true,
+		Message: "Succeed to POST data",
+		Errors:  nil,
+		Data:    data,
 	})
 }
