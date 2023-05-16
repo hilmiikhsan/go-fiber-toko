@@ -1,9 +1,13 @@
 package user
 
 import (
+	"strconv"
+	"strings"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/hilmiikhsan/go_rest_api/common"
 	"github.com/hilmiikhsan/go_rest_api/configuration"
+	"github.com/hilmiikhsan/go_rest_api/constants"
 	"github.com/hilmiikhsan/go_rest_api/middleware"
 	"github.com/hilmiikhsan/go_rest_api/model"
 	"github.com/hilmiikhsan/go_rest_api/service/alamat"
@@ -29,6 +33,7 @@ func (controller UserController) Route(app *fiber.App) {
 	app.Put("/user", middleware.AuthenticateJWT(controller.Config), controller.UpdateProfile)
 	app.Post("/user/alamat", middleware.AuthenticateJWT(controller.Config), controller.CreateAlamat)
 	app.Get("/user/alamat", middleware.AuthenticateJWT(controller.Config), controller.GetAllAlamat)
+	app.Get("/user/alamat/:id", middleware.AuthenticateJWT(controller.Config), controller.GetAlamatByID)
 }
 
 func (controller UserController) GetProfile(c *fiber.Ctx) error {
@@ -153,6 +158,46 @@ func (controller UserController) GetAllAlamat(c *fiber.Ctx) error {
 
 	data, err := controller.AlamatServiceInterface.GetAllAlamat(c.Context(), params, userID)
 	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(model.GeneralResponse{
+			Status:  false,
+			Message: "Failed to GET data",
+			Errors:  []string{err.Error()},
+			Data:    nil,
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(model.GeneralResponse{
+		Status:  true,
+		Message: "Succeed to POST data",
+		Errors:  nil,
+		Data:    data,
+	})
+}
+
+func (controller UserController) GetAlamatByID(c *fiber.Ctx) error {
+	userID := c.Locals("id").(int)
+	idStr := c.Params("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Status:  false,
+			Message: "Failed to GET data",
+			Errors:  []string{err.Error()},
+			Data:    nil,
+		})
+	}
+
+	data, err := controller.AlamatServiceInterface.GetAlamatByID(c.Context(), id, userID)
+	if err != nil {
+		if strings.Contains(err.Error(), constants.ErrAlamatNotFound.Error()) {
+			return c.Status(fiber.StatusNotFound).JSON(model.GeneralResponse{
+				Status:  false,
+				Message: "Failed to GET data",
+				Errors:  []string{err.Error()},
+				Data:    nil,
+			})
+		}
+
 		return c.Status(fiber.StatusInternalServerError).JSON(model.GeneralResponse{
 			Status:  false,
 			Message: "Failed to GET data",

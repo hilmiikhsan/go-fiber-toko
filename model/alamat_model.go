@@ -11,7 +11,7 @@ type ParamsModel struct {
 	JudulAlamat string `query:"judul_alamat"`
 }
 
-type GetAllAlamatModel struct {
+type GetAlamatModel struct {
 	ID           int    `json:"id"`
 	JudulAlamat  string `json:"judul_alamat"`
 	NamaPenerima string `json:"nama_penerima"`

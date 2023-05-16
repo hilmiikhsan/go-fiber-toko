@@ -2,6 +2,7 @@ package alamat
 
 import (
 	"context"
+	"errors"
 
 	"github.com/hilmiikhsan/go_rest_api/entity"
 	"github.com/hilmiikhsan/go_rest_api/model"
@@ -40,4 +41,14 @@ func (alamatRepository *alamatRepository) FindAll(ctx context.Context, params *s
 	}
 
 	return results, nil
+}
+
+func (alamatRepository *alamatRepository) FindByID(ctx context.Context, id, userID int) (entity.Alamat, error) {
+	alamat := entity.Alamat{}
+	result := alamatRepository.DB.WithContext(ctx).Where("alamat.id = ?", id).Where("alamat.id_user = ?", userID).Find(&alamat)
+	if result.RowsAffected == 0 {
+		return alamat, errors.New("Alamat not found")
+	}
+
+	return alamat, nil
 }
