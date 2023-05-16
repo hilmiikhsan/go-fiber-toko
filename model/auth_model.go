@@ -11,6 +11,7 @@ type AuthRegisterModel struct {
 	Email        string `json:"email" validate:"required"`
 	IdProvinsi   string `json:"id_provinsi" validate:"required"`
 	IdKota       string `json:"id_kota" validate:"required"`
+	NamaToko     string `json:"nama_toko" validate:"required"`
 }
 
 type AuthLoginModel struct {
@@ -19,6 +20,7 @@ type AuthLoginModel struct {
 }
 
 type AuthResponseModel struct {
+	ID           int         `json:"id"`
 	Nama         string      `json:"nama"`
 	NoTelp       string      `json:"no_telp"`
 	TanggalLahir string      `json:"tanggal_lahir"`

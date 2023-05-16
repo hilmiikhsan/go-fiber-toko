@@ -7,5 +7,6 @@ import (
 )
 
 type UserServiceInterface interface {
-	GetProfile(ctx context.Context, email string) (model.User, error)
+	GetProfile(ctx context.Context, userID int) (model.UserModel, error)
+	UpdateProfile(ctx context.Context, user model.UpdateUserProfileModel, userID int) error
 }

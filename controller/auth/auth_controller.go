@@ -134,7 +134,7 @@ func (controller AuthController) Login(c *fiber.Ctx) error {
 		})
 	}
 
-	token := common.GenerateToken(response.Email, response.NoTelp, controller.Config)
+	token := common.GenerateToken(response.ID, response.Email, response.NoTelp, controller.Config)
 	resultWithToken := map[string]interface{}{
 		"token": token,
 	}

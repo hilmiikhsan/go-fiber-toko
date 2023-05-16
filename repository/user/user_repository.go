@@ -28,13 +28,23 @@ func (userRepository *userRepository) FindByEmail(ctx context.Context, email str
 	return user, nil
 }
 
-func (userRepository *userRepository) RegisterUser(ctx context.Context, user entity.User) error {
-	err := userRepository.DB.WithContext(ctx).Create(&user).Error
-	if err != nil {
-		return err
+func (userRepository *userRepository) FindByID(ctx context.Context, id int) (entity.User, error) {
+	user := entity.User{}
+	result := userRepository.DB.WithContext(ctx).Where("user.id = ?", id).Find(&user)
+	if result.RowsAffected == 0 {
+		return entity.User{}, nil
 	}
 
-	return nil
+	return user, nil
+}
+
+func (userRepository *userRepository) Insert(ctx context.Context, tx *gorm.DB, user entity.User) (int, error) {
+	err := tx.WithContext(ctx).Create(&user).Error
+	if err != nil {
+		return 0, err
+	}
+
+	return user.ID, nil
 }
 
 func (userRepository *userRepository) FindByNoTelp(ctx context.Context, noTelp string) (entity.User, error) {
@@ -45,4 +55,13 @@ func (userRepository *userRepository) FindByNoTelp(ctx context.Context, noTelp s
 	}
 
 	return user, nil
+}
+
+func (userRepository *userRepository) Update(ctx context.Context, tx *gorm.DB, user entity.User, id int) error {
+	err := tx.WithContext(ctx).Where("user.id = ?", id).Updates(&user).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

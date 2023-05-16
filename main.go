@@ -8,6 +8,7 @@ import (
 	"github.com/hilmiikhsan/go_rest_api/controller/auth"
 	"github.com/hilmiikhsan/go_rest_api/controller/user"
 	"github.com/hilmiikhsan/go_rest_api/exception"
+	tokoRepo "github.com/hilmiikhsan/go_rest_api/repository/toko"
 	userRepo "github.com/hilmiikhsan/go_rest_api/repository/user"
 	authService "github.com/hilmiikhsan/go_rest_api/service/auth"
 	userService "github.com/hilmiikhsan/go_rest_api/service/user"
@@ -21,13 +22,14 @@ func main() {
 
 	// repository
 	userRepository := userRepo.NewUserRepositoryInterface(db)
+	tokoRepository := tokoRepo.NewTokoRepositoryInterface(db)
 
 	// rest client
 	// httpBinRestClient := restclient.NewHttpBinRestClient()
 
 	// service
-	authService := authService.NewAuthServiceInterface(&userRepository)
-	userService := userService.NewUserServiceInterface(&userRepository)
+	authService := authService.NewAuthServiceInterface(&userRepository, &tokoRepository, db)
+	userService := userService.NewUserServiceInterface(&userRepository, db)
 	// httpBinService := httpbin.NewHttpBinServiceInterface(&httpBinRestClient)
 
 	// controller

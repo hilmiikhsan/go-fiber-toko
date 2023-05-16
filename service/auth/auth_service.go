@@ -12,17 +12,23 @@ import (
 	"github.com/hilmiikhsan/go_rest_api/entity"
 	"github.com/hilmiikhsan/go_rest_api/exception"
 	"github.com/hilmiikhsan/go_rest_api/model"
+	"github.com/hilmiikhsan/go_rest_api/repository/toko"
 	"github.com/hilmiikhsan/go_rest_api/repository/user"
+	"gorm.io/gorm"
 )
 
-func NewAuthServiceInterface(userRepository *user.UserRepositoryInterface) AuthServiceInterface {
+func NewAuthServiceInterface(userRepository *user.UserRepositoryInterface, tokoRepository *toko.TokoRepositoryInterface, db *gorm.DB) AuthServiceInterface {
 	return &authService{
 		UserRepositoryInterface: *userRepository,
+		TokoRepositoryInterface: *tokoRepository,
+		DB:                      db,
 	}
 }
 
 type authService struct {
 	user.UserRepositoryInterface
+	toko.TokoRepositoryInterface
+	*gorm.DB
 }
 
 func (authService *authService) Register(ctx context.Context, user model.AuthRegisterModel) (string, error) {
@@ -56,8 +62,28 @@ func (authService *authService) Register(ctx context.Context, user model.AuthReg
 		IdKota:       user.IdKota,
 	}
 
-	err = authService.RegisterUser(ctx, userData)
+	tx := authService.DB.Begin()
+
+	id, err := authService.UserRepositoryInterface.Insert(ctx, tx, userData)
 	if err != nil {
+		tx.Rollback()
+		return "", err
+	}
+
+	tokoData := entity.Toko{
+		IdUser:   id,
+		NamaToko: user.NamaToko,
+	}
+
+	err = authService.TokoRepositoryInterface.Insert(ctx, tx, tokoData)
+	if err != nil {
+		tx.Rollback()
+		return "", err
+	}
+
+	err = tx.Commit().Error
+	if err != nil {
+		tx.Rollback()
 		return "", err
 	}
 
@@ -106,6 +132,7 @@ func (authService *authService) Login(ctx context.Context, user model.AuthLoginM
 	}
 
 	response = model.AuthResponseModel{
+		ID:           data.ID,
 		Nama:         data.Nama,
 		NoTelp:       data.NoTelp,
 		TanggalLahir: data.TanggalLahir.Format(constants.Layout),
