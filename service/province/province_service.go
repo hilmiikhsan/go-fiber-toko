@@ -64,3 +64,30 @@ func (provinceService *provinceService) GetProvinceDetail(ctx context.Context, p
 
 	return response, nil
 }
+
+func (provinceService *provinceService) GetCity(ctx context.Context, provID string) ([]model.CityModel, error) {
+	response := []model.CityModel{}
+
+	urlCity := "https://hilmiikhsan.github.io/api-wilayah-indonesia/api/regencies/" + provID + ".json"
+	citiesData, err := http.Get(urlCity)
+	if err != nil {
+		return response, err
+	}
+	defer citiesData.Body.Close()
+
+	var cities []model.CityModel
+	err = json.NewDecoder(citiesData.Body).Decode(&cities)
+	if err != nil {
+		return response, err
+	}
+
+	for _, x := range cities {
+		response = append(response, model.CityModel{
+			ID:         x.ID,
+			ProvinceID: x.ProvinceID,
+			Name:       x.Name,
+		})
+	}
+
+	return response, nil
+}
