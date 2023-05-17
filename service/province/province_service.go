@@ -91,3 +91,28 @@ func (provinceService *provinceService) GetCity(ctx context.Context, provID stri
 
 	return response, nil
 }
+
+func (provinceService *provinceService) GetCityDetail(ctx context.Context, cityID string) (model.CityModel, error) {
+	response := model.CityModel{}
+
+	urlCity := "https://emsifa.github.io/api-wilayah-indonesia/api/regency/" + cityID + ".json"
+	cityData, err := http.Get(urlCity)
+	if err != nil {
+		return response, err
+	}
+	defer cityData.Body.Close()
+
+	var city model.CityModel
+	err = json.NewDecoder(cityData.Body).Decode(&city)
+	if err != nil {
+		return response, err
+	}
+
+	response = model.CityModel{
+		ID:         city.ID,
+		ProvinceID: city.ProvinceID,
+		Name:       city.Name,
+	}
+
+	return response, nil
+}

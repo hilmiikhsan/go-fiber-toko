@@ -25,6 +25,7 @@ func (controller ProvinceController) Route(app *fiber.App) {
 	app.Get("/provcity/listprovincies", controller.GetProvinceCity)
 	app.Get("/provcity/detailprovince/:prov_id", controller.GetProvinceDetail)
 	app.Get("/provcity/listcities/:prov_id", controller.GetCity)
+	app.Get("/provcity/detailcity/:city_id", controller.GetCityDetail)
 }
 
 func (controller ProvinceController) GetProvinceCity(c *fiber.Ctx) error {
@@ -86,6 +87,36 @@ func (controller ProvinceController) GetCity(c *fiber.Ctx) error {
 				Status:  false,
 				Message: "Failed to get data",
 				Errors:  []string{"Province city list not found"},
+				Data:    nil,
+			})
+		}
+
+		return c.Status(fiber.StatusInternalServerError).JSON(model.GeneralResponse{
+			Status:  false,
+			Message: "Failed to get data",
+			Errors:  []string{err.Error()},
+			Data:    nil,
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(model.GeneralResponse{
+		Status:  true,
+		Message: "Succeed to get data",
+		Errors:  nil,
+		Data:    data,
+	})
+}
+
+func (controller ProvinceController) GetCityDetail(c *fiber.Ctx) error {
+	cityID := c.Params("city_id")
+
+	data, err := controller.ProvinceServiceInterface.GetCityDetail(c.Context(), cityID)
+	if err != nil {
+		if strings.Contains(err.Error(), "invalid character '<' looking for beginning of value") {
+			return c.Status(fiber.StatusNotFound).JSON(model.GeneralResponse{
+				Status:  false,
+				Message: "Failed to get data",
+				Errors:  []string{"City not found"},
 				Data:    nil,
 			})
 		}
