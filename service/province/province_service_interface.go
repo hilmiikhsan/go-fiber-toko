@@ -8,4 +8,5 @@ import (
 
 type ProvinceServiceInterface interface {
 	GetProvinceCity(ctx context.Context) ([]model.Provinsi, error)
+	GetProvinceDetail(ctx context.Context, provID string) (model.Provinsi, error)
 }

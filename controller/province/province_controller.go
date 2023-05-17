@@ -1,6 +1,8 @@
 package province
 
 import (
+	"strings"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/hilmiikhsan/go_rest_api/configuration"
 	"github.com/hilmiikhsan/go_rest_api/model"
@@ -21,6 +23,7 @@ func NewProvinceController(provinceService *province.ProvinceServiceInterface, c
 
 func (controller ProvinceController) Route(app *fiber.App) {
 	app.Get("/provcity/listprovincies", controller.GetProvinceCity)
+	app.Get("/provcity/detailprovince/:prov_id", controller.GetProvinceDetail)
 }
 
 func (controller ProvinceController) GetProvinceCity(c *fiber.Ctx) error {
@@ -32,6 +35,29 @@ func (controller ProvinceController) GetProvinceCity(c *fiber.Ctx) error {
 			Errors:  []string{err.Error()},
 			Data:    nil,
 		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(model.GeneralResponse{
+		Status:  true,
+		Message: "Succeed to get data",
+		Errors:  nil,
+		Data:    data,
+	})
+}
+
+func (controller ProvinceController) GetProvinceDetail(c *fiber.Ctx) error {
+	provID := c.Params("prov_id")
+
+	data, err := controller.ProvinceServiceInterface.GetProvinceDetail(c.Context(), provID)
+	if err != nil {
+		if strings.Contains(err.Error(), "invalid character '<' looking for beginning of value") {
+			return c.Status(fiber.StatusNotFound).JSON(model.GeneralResponse{
+				Status:  false,
+				Message: "Failed to get data",
+				Errors:  []string{"Province not found"},
+				Data:    nil,
+			})
+		}
 	}
 
 	return c.Status(fiber.StatusOK).JSON(model.GeneralResponse{
