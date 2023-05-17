@@ -53,6 +53,11 @@ func (tokoService *tokoService) UpdateToko(ctx context.Context, namaToko string,
 		return errors.New("Nama toko is required")
 	}
 
+	data, err := tokoService.TokoRepositoryInterface.FindByIdAndUserID(ctx, id, userID)
+	if err != nil {
+		return err
+	}
+
 	if len(photo.Filename) > 0 {
 		photoData = fmt.Sprintf("%d-%d%s", userID, time.Now().UnixNano(), filepath.Ext(photo.Filename))
 		err := SaveFile(photo, userID)
@@ -61,11 +66,6 @@ func (tokoService *tokoService) UpdateToko(ctx context.Context, namaToko string,
 		}
 	} else {
 		photoData = ""
-	}
-
-	data, err := tokoService.TokoRepositoryInterface.FindByIdAndUserID(ctx, id, userID)
-	if err != nil {
-		return err
 	}
 
 	tx := tokoService.DB.Begin()

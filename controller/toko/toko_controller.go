@@ -74,13 +74,6 @@ func (controller TokoController) UpdateToko(c *fiber.Ctx) error {
 		})
 	}
 
-	// var request model.UppdateTokoModel
-
-	// request = model.UppdateTokoModel{
-	// 	NamaToko: namaToko,
-	// 	Photo:    photo.Filename,
-	// }
-
 	var photo *multipart.FileHeader
 
 	namaToko := c.FormValue("nama_toko")
