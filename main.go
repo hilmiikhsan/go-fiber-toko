@@ -6,6 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/hilmiikhsan/go_rest_api/configuration"
 	"github.com/hilmiikhsan/go_rest_api/controller/auth"
+	"github.com/hilmiikhsan/go_rest_api/controller/province"
 	"github.com/hilmiikhsan/go_rest_api/controller/toko"
 	"github.com/hilmiikhsan/go_rest_api/controller/user"
 	"github.com/hilmiikhsan/go_rest_api/exception"
@@ -14,6 +15,7 @@ import (
 	userRepo "github.com/hilmiikhsan/go_rest_api/repository/user"
 	alamatService "github.com/hilmiikhsan/go_rest_api/service/alamat"
 	authService "github.com/hilmiikhsan/go_rest_api/service/auth"
+	provinceService "github.com/hilmiikhsan/go_rest_api/service/province"
 	tokoService "github.com/hilmiikhsan/go_rest_api/service/toko"
 	userService "github.com/hilmiikhsan/go_rest_api/service/user"
 )
@@ -37,12 +39,14 @@ func main() {
 	userService := userService.NewUserServiceInterface(&userRepository, db)
 	alamatService := alamatService.NewAlamatServiceInterface(&alamatRepository, db)
 	tokoService := tokoService.NewTokoServiceInterface(&tokoRepository, db)
+	provinceService := provinceService.NewProvinceServiceInterface()
 	// httpBinService := httpbin.NewHttpBinServiceInterface(&httpBinRestClient)
 
 	// controller
 	authController := auth.NewAuthController(&authService, config)
 	userController := user.NewUserController(&userService, config, &alamatService)
 	tokoController := toko.NewTokoController(&tokoService, config)
+	provinceController := province.NewProvinceController(&provinceService, config)
 
 	// setup fiber
 	app := fiber.New()
@@ -53,6 +57,7 @@ func main() {
 	authController.Route(app)
 	userController.Route(app)
 	tokoController.Route(app)
+	provinceController.Route(app)
 
 	//start app
 	err := app.Listen(config.Get("SERVER.PORT"))

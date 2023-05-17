@@ -1,0 +1,11 @@
+package province
+
+import (
+	"context"
+
+	"github.com/hilmiikhsan/go_rest_api/model"
+)
+
+type ProvinceServiceInterface interface {
+	GetProvinceCity(ctx context.Context) ([]model.Provinsi, error)
+}
