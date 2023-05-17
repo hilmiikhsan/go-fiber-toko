@@ -12,7 +12,7 @@ type UppdateTokoModel struct {
 	Photo    string
 }
 
-type GetAllTokoModel struct {
+type GetTokoModel struct {
 	ID       int    `json:"id"`
 	NamaToko string `json:"nama_toko"`
 	UrlFoto  string `json:"url_foto"`

@@ -31,7 +31,7 @@ type tokoService struct {
 func (tokoService *tokoService) GetMyToko(ctx context.Context, userID int) (model.TokoModel, error) {
 	response := model.TokoModel{}
 
-	data, err := tokoService.TokoRepositoryInterface.FindByID(ctx, userID)
+	data, err := tokoService.TokoRepositoryInterface.FindByUserID(ctx, userID)
 	if err != nil {
 		return response, err
 	}
@@ -87,8 +87,8 @@ func (tokoService *tokoService) UpdateToko(ctx context.Context, namaToko string,
 	return nil
 }
 
-func (tokoService *tokoService) GetAllToko(ctx context.Context, params *struct{ model.ParamsTokoModel }) ([]model.GetAllTokoModel, error) {
-	response := []model.GetAllTokoModel{}
+func (tokoService *tokoService) GetAllToko(ctx context.Context, params *struct{ model.ParamsTokoModel }) ([]model.GetTokoModel, error) {
+	response := []model.GetTokoModel{}
 
 	if params.Page < 1 {
 		params.Page = 1
@@ -104,7 +104,7 @@ func (tokoService *tokoService) GetAllToko(ctx context.Context, params *struct{ 
 	}
 
 	for _, x := range data {
-		response = append(response, model.GetAllTokoModel{
+		response = append(response, model.GetTokoModel{
 			ID:       x.ID,
 			NamaToko: x.NamaToko,
 			UrlFoto:  x.UrlFoto,
@@ -138,4 +138,21 @@ func SaveFile(file *multipart.FileHeader, userID int) error {
 	}
 
 	return nil
+}
+
+func (tokoService *tokoService) GeTokoByID(ctx context.Context, id int) (model.GetTokoModel, error) {
+	response := model.GetTokoModel{}
+
+	data, err := tokoService.TokoRepositoryInterface.FindByID(ctx, id)
+	if err != nil {
+		return response, err
+	}
+
+	response = model.GetTokoModel{
+		ID:       data.ID,
+		NamaToko: data.NamaToko,
+		UrlFoto:  data.UrlFoto,
+	}
+
+	return response, nil
 }

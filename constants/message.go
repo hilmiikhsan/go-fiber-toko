@@ -7,4 +7,5 @@ var (
 	ErrPasswordNotMatch   = errors.New("Password is not match")
 	ErrRecordNotFound     = errors.New("record not found")
 	ErrNamaTokoIsRequired = errors.New("Nama toko is required")
+	ErrTokoNotFound       = errors.New("Toko tidak ditemukan")
 )

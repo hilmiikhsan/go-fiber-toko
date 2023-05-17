@@ -28,7 +28,7 @@ func (tokoRepository *tokoRepository) Insert(ctx context.Context, tx *gorm.DB, t
 	return nil
 }
 
-func (tokoRepository *tokoRepository) FindByID(ctx context.Context, id int) (entity.Toko, error) {
+func (tokoRepository *tokoRepository) FindByUserID(ctx context.Context, id int) (entity.Toko, error) {
 	toko := entity.Toko{}
 	result := tokoRepository.DB.WithContext(ctx).Where("toko.id_user = ?", id).Find(&toko)
 	if result.RowsAffected == 0 {
@@ -78,4 +78,14 @@ func (tokoRepository *tokoRepository) FindAll(ctx context.Context, params *struc
 	}
 
 	return results, nil
+}
+
+func (tokoRepository *tokoRepository) FindByID(ctx context.Context, id int) (entity.Toko, error) {
+	toko := entity.Toko{}
+	result := tokoRepository.DB.WithContext(ctx).Where("id = ?", id).Find(&toko)
+	if result.RowsAffected == 0 {
+		return entity.Toko{}, errors.New("Toko tidak ditemukan")
+	}
+
+	return toko, nil
 }

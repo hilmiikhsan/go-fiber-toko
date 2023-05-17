@@ -30,6 +30,7 @@ func (controller TokoController) Route(app *fiber.App) {
 	app.Get("/toko/my", middleware.AuthenticateJWT(controller.Config), controller.GetMyToko)
 	app.Put("/toko/:id_toko", middleware.AuthenticateJWT(controller.Config), controller.UpdateToko)
 	app.Get("/toko", middleware.AuthenticateJWT(controller.Config), controller.GetAllToko)
+	app.Get("/toko/:id_toko", middleware.AuthenticateJWT(controller.Config), controller.GetTokoByID)
 }
 
 func (controller TokoController) GetMyToko(c *fiber.Ctx) error {
@@ -167,26 +168,6 @@ func (controller TokoController) GetAllToko(c *fiber.Ctx) error {
 		})
 	}
 
-	// page, err := strconv.Atoi(c.Query("page", "1"))
-	// if err != nil {
-	// 	return c.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
-	// 		Status:  false,
-	// 		Message: "Failed to GET data",
-	// 		Errors:  []string{err.Error()},
-	// 		Data:    nil,
-	// 	})
-	// }
-
-	// limit, err := strconv.Atoi(c.Query("limit", "10"))
-	// if err != nil {
-	// 	return c.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
-	// 		Status:  false,
-	// 		Message: "Failed to GET data",
-	// 		Errors:  []string{err.Error()},
-	// 		Data:    nil,
-	// 	})
-	// }
-
 	data, err := controller.TokoServiceInterface.GetAllToko(c.Context(), params)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(model.GeneralResponse{
@@ -206,5 +187,44 @@ func (controller TokoController) GetAllToko(c *fiber.Ctx) error {
 			Limit: params.Limit,
 			Data:  data,
 		},
+	})
+}
+
+func (controller TokoController) GetTokoByID(c *fiber.Ctx) error {
+	idStr := c.Params("id_toko")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Status:  false,
+			Message: "Failed to GET data",
+			Errors:  []string{err.Error()},
+			Data:    nil,
+		})
+	}
+
+	data, err := controller.TokoServiceInterface.GeTokoByID(c.Context(), id)
+	if err != nil {
+		if strings.Contains(err.Error(), constants.ErrTokoNotFound.Error()) {
+			return c.Status(fiber.StatusNotFound).JSON(model.GeneralResponse{
+				Status:  false,
+				Message: "Failed to GET data",
+				Errors:  []string{err.Error()},
+				Data:    nil,
+			})
+		}
+
+		return c.Status(fiber.StatusInternalServerError).JSON(model.GeneralResponse{
+			Status:  false,
+			Message: "Failed to GET data",
+			Errors:  []string{err.Error()},
+			Data:    nil,
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(model.GeneralResponse{
+		Status:  true,
+		Message: "Succeed to GET data",
+		Errors:  nil,
+		Data:    data,
 	})
 }
