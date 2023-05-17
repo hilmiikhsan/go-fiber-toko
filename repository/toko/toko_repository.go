@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/hilmiikhsan/go_rest_api/entity"
+	"github.com/hilmiikhsan/go_rest_api/model"
 	"gorm.io/gorm"
 )
 
@@ -54,4 +55,27 @@ func (tokoRepository *tokoRepository) FindByIdAndUserID(ctx context.Context, id,
 	}
 
 	return toko, nil
+}
+
+func (tokoRepository *tokoRepository) FindAll(ctx context.Context, params *struct{ model.ParamsTokoModel }) ([]entity.Toko, error) {
+	results := []entity.Toko{}
+	query := tokoRepository.DB
+	var totalRows int64
+	offset := (params.Page - 1) * params.Limit
+
+	if params.Nama != "" {
+		query = query.Where("toko.name_toko LIKE ?", "%"+params.Nama+"%")
+	}
+
+	err := query.Model(&entity.Toko{}).Count(&totalRows).Error
+	if err != nil {
+		return results, err
+	}
+
+	err = query.Offset(offset).Limit(params.Limit).Find(&results).Error
+	if err != nil {
+		return results, err
+	}
+
+	return results, nil
 }

@@ -148,6 +148,7 @@ func (controller UserController) GetAllAlamat(c *fiber.Ctx) error {
 	params := new(struct {
 		model.ParamsModel
 	})
+
 	err := c.QueryParser(params)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{

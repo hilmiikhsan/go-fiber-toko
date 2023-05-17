@@ -29,6 +29,7 @@ func NewTokoController(tokoService *toko.TokoServiceInterface, config configurat
 func (controller TokoController) Route(app *fiber.App) {
 	app.Get("/toko/my", middleware.AuthenticateJWT(controller.Config), controller.GetMyToko)
 	app.Put("/toko/:id_toko", middleware.AuthenticateJWT(controller.Config), controller.UpdateToko)
+	app.Get("/toko", middleware.AuthenticateJWT(controller.Config), controller.GetAllToko)
 }
 
 func (controller TokoController) GetMyToko(c *fiber.Ctx) error {
@@ -148,5 +149,62 @@ func (controller TokoController) UpdateToko(c *fiber.Ctx) error {
 		Message: "Succeed to UPDATE data",
 		Errors:  nil,
 		Data:    "Update toko succeed",
+	})
+}
+
+func (controller TokoController) GetAllToko(c *fiber.Ctx) error {
+	params := new(struct {
+		model.ParamsTokoModel
+	})
+
+	err := c.QueryParser(params)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Status:  false,
+			Message: "Failed to GET data",
+			Errors:  []string{err.Error()},
+			Data:    nil,
+		})
+	}
+
+	// page, err := strconv.Atoi(c.Query("page", "1"))
+	// if err != nil {
+	// 	return c.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+	// 		Status:  false,
+	// 		Message: "Failed to GET data",
+	// 		Errors:  []string{err.Error()},
+	// 		Data:    nil,
+	// 	})
+	// }
+
+	// limit, err := strconv.Atoi(c.Query("limit", "10"))
+	// if err != nil {
+	// 	return c.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+	// 		Status:  false,
+	// 		Message: "Failed to GET data",
+	// 		Errors:  []string{err.Error()},
+	// 		Data:    nil,
+	// 	})
+	// }
+
+	data, err := controller.TokoServiceInterface.GetAllToko(c.Context(), params)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(model.GeneralResponse{
+			Status:  false,
+			Message: "Failed to GET data",
+			Errors:  []string{err.Error()},
+			Data:    nil,
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(model.GeneralResponse{
+		Status:  true,
+		Message: "Succeed to GET data",
+		Errors:  nil,
+		Data: model.PaginationResponse{
+			Page:  params.Page,
+			Limit: params.Limit,
+			Data:  data,
+		},
 	})
 }

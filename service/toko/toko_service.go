@@ -64,8 +64,6 @@ func (tokoService *tokoService) UpdateToko(ctx context.Context, namaToko string,
 		if err != nil {
 			return err
 		}
-	} else {
-		photoData = ""
 	}
 
 	tx := tokoService.DB.Begin()
@@ -87,6 +85,33 @@ func (tokoService *tokoService) UpdateToko(ctx context.Context, namaToko string,
 	}
 
 	return nil
+}
+
+func (tokoService *tokoService) GetAllToko(ctx context.Context, params *struct{ model.ParamsTokoModel }) ([]model.GetAllTokoModel, error) {
+	response := []model.GetAllTokoModel{}
+
+	if params.Page < 1 {
+		params.Page = 1
+	}
+
+	if params.Limit < 1 {
+		params.Limit = 10
+	}
+
+	data, err := tokoService.FindAll(ctx, params)
+	if err != nil {
+		return response, err
+	}
+
+	for _, x := range data {
+		response = append(response, model.GetAllTokoModel{
+			ID:       x.ID,
+			NamaToko: x.NamaToko,
+			UrlFoto:  x.UrlFoto,
+		})
+	}
+
+	return response, nil
 }
 
 func SaveFile(file *multipart.FileHeader, userID int) error {

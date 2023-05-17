@@ -9,6 +9,6 @@ import (
 
 type TokoServiceInterface interface {
 	GetMyToko(ctx context.Context, userID int) (model.TokoModel, error)
-	// UpdateToko(ctx context.Context, toko model.UppdateTokoModel, id, userID int) error
 	UpdateToko(ctx context.Context, namaToko string, photo *multipart.FileHeader, id, userID int) error
+	GetAllToko(ctx context.Context, params *struct{ model.ParamsTokoModel }) ([]model.GetAllTokoModel, error)
 }
