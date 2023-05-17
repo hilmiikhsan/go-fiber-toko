@@ -1,6 +1,9 @@
 package toko
 
 import (
+	"mime/multipart"
+	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
@@ -25,6 +28,7 @@ func NewTokoController(tokoService *toko.TokoServiceInterface, config configurat
 
 func (controller TokoController) Route(app *fiber.App) {
 	app.Get("/toko/my", middleware.AuthenticateJWT(controller.Config), controller.GetMyToko)
+	app.Put("/toko/:id_toko", middleware.AuthenticateJWT(controller.Config), controller.UpdateToko)
 }
 
 func (controller TokoController) GetMyToko(c *fiber.Ctx) error {
@@ -54,5 +58,102 @@ func (controller TokoController) GetMyToko(c *fiber.Ctx) error {
 		Message: "Succeed to GET data",
 		Errors:  nil,
 		Data:    data,
+	})
+}
+
+func (controller TokoController) UpdateToko(c *fiber.Ctx) error {
+	userID := c.Locals("id").(int)
+	idStr := c.Params("id_toko")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Status:  false,
+			Message: "Failed to UPDATE data",
+			Errors:  []string{err.Error()},
+			Data:    nil,
+		})
+	}
+
+	// var request model.UppdateTokoModel
+
+	// request = model.UppdateTokoModel{
+	// 	NamaToko: namaToko,
+	// 	Photo:    photo.Filename,
+	// }
+
+	var photo *multipart.FileHeader
+
+	namaToko := c.FormValue("nama_toko")
+	photo, err = c.FormFile("photo")
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Status:  false,
+			Message: "Failed to UPDATE data",
+			Errors:  []string{"Photo is empty"},
+			Data:    nil,
+		})
+	}
+
+	allowedExtensions := []string{".jpg", ".jpeg", ".png"}
+	validExtension := false
+	for _, ext := range allowedExtensions {
+		if strings.ToLower(filepath.Ext(photo.Filename)) == ext {
+			validExtension = true
+			break
+		}
+	}
+
+	if !validExtension {
+		return c.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Status:  false,
+			Message: "Failed to UPDATE data",
+			Errors:  []string{"Invalid file extension"},
+			Data:    nil,
+		})
+	}
+
+	maxFileSize := 1 * 1024 * 1024
+	if photo.Size > int64(maxFileSize) {
+		return c.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Status:  false,
+			Message: "Failed to UPDATE data",
+			Errors:  []string{"Photo size exceeds the limit"},
+			Data:    nil,
+		})
+	}
+
+	err = controller.TokoServiceInterface.UpdateToko(c.Context(), namaToko, photo, id, userID)
+	if err != nil {
+		if strings.Contains(err.Error(), constants.ErrNamaTokoIsRequired.Error()) {
+			return c.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+				Status:  false,
+				Message: "Failed to UPDATE data",
+				Errors:  []string{err.Error()},
+				Data:    nil,
+			})
+		}
+
+		if strings.Contains(err.Error(), constants.ErrRecordNotFound.Error()) {
+			return c.Status(fiber.StatusNotFound).JSON(model.GeneralResponse{
+				Status:  false,
+				Message: "Failed to UPDATE data",
+				Errors:  []string{err.Error()},
+				Data:    nil,
+			})
+		}
+
+		return c.Status(fiber.StatusInternalServerError).JSON(model.GeneralResponse{
+			Status:  false,
+			Message: "Failed to UPDATE data",
+			Errors:  []string{err.Error()},
+			Data:    nil,
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(model.GeneralResponse{
+		Status:  true,
+		Message: "Succeed to UPDATE data",
+		Errors:  nil,
+		Data:    "Update toko succeed",
 	})
 }

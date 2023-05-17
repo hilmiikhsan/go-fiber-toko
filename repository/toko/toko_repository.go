@@ -36,3 +36,22 @@ func (tokoRepository *tokoRepository) FindByID(ctx context.Context, id int) (ent
 
 	return toko, nil
 }
+
+func (tokoRepository *tokoRepository) Update(ctx context.Context, tx *gorm.DB, toko entity.Toko, id, userID int) error {
+	err := tx.WithContext(ctx).Where("toko.id = ?", id).Where("toko.id_user = ?", userID).Updates(&toko).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (tokoRepository *tokoRepository) FindByIdAndUserID(ctx context.Context, id, userID int) (entity.Toko, error) {
+	toko := entity.Toko{}
+	result := tokoRepository.DB.WithContext(ctx).Where("toko.id = ?", id).Where("toko.id_user = ?", userID).Find(&toko)
+	if result.RowsAffected == 0 {
+		return entity.Toko{}, errors.New("record not found")
+	}
+
+	return toko, nil
+}
