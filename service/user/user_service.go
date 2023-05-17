@@ -2,8 +2,6 @@ package user
 
 import (
 	"context"
-	"encoding/json"
-	"net/http"
 	"time"
 
 	"github.com/hilmiikhsan/go_rest_api/common"
@@ -12,19 +10,22 @@ import (
 	"github.com/hilmiikhsan/go_rest_api/exception"
 	"github.com/hilmiikhsan/go_rest_api/model"
 	"github.com/hilmiikhsan/go_rest_api/repository/user"
+	"github.com/hilmiikhsan/go_rest_api/service/province"
 	"gorm.io/gorm"
 )
 
-func NewUserServiceInterface(userRepository *user.UserRepositoryInterface, db *gorm.DB) UserServiceInterface {
+func NewUserServiceInterface(userRepository *user.UserRepositoryInterface, db *gorm.DB, provinceService *province.ProvinceServiceInterface) UserServiceInterface {
 	return &userService{
-		UserRepositoryInterface: *userRepository,
-		DB:                      db,
+		UserRepositoryInterface:  *userRepository,
+		DB:                       db,
+		ProvinceServiceInterface: *provinceService,
 	}
 }
 
 type userService struct {
 	user.UserRepositoryInterface
 	*gorm.DB
+	province.ProvinceServiceInterface
 }
 
 func (userService *userService) GetProfile(ctx context.Context, userID int) (model.UserModel, error) {
@@ -35,28 +36,12 @@ func (userService *userService) GetProfile(ctx context.Context, userID int) (mod
 		return response, err
 	}
 
-	urlProvinsi := "https://hilmiikhsan.github.io/api-wilayah-indonesia/api/province/" + data.IdProvinsi + ".json"
-	provinceData, err := http.Get(urlProvinsi)
-	if err != nil {
-		return response, err
-	}
-	defer provinceData.Body.Close()
-
-	var province model.Provinsi
-	err = json.NewDecoder(provinceData.Body).Decode(&province)
+	provinceData, err := userService.ProvinceServiceInterface.GetProvinceDetail(ctx, data.IdProvinsi)
 	if err != nil {
 		return response, err
 	}
 
-	urlKota := "https://hilmiikhsan.github.io/api-wilayah-indonesia/api/regency/" + data.IdKota + ".json"
-	regencyData, err := http.Get(urlKota)
-	if err != nil {
-		return response, err
-	}
-	defer regencyData.Body.Close()
-
-	var regency model.Kota
-	err = json.NewDecoder(regencyData.Body).Decode(&regency)
+	cityData, err := userService.ProvinceServiceInterface.GetCityDetail(ctx, data.IdKota)
 	if err != nil {
 		return response, err
 	}
@@ -70,13 +55,13 @@ func (userService *userService) GetProfile(ctx context.Context, userID int) (mod
 		Pekerjaan:    data.Pekerjaan,
 		Email:        data.Email,
 		IdProvinsi: model.Provinsi{
-			ID:   province.ID,
-			Name: province.Name,
+			ID:   provinceData.ID,
+			Name: provinceData.Name,
 		},
 		IdKota: model.Kota{
-			ID:         regency.ID,
-			ProvinceID: regency.ProvinceID,
-			Name:       regency.Name,
+			ID:         cityData.ID,
+			ProvinceID: cityData.ProvinceID,
+			Name:       cityData.Name,
 		},
 	}
 

@@ -36,10 +36,10 @@ func main() {
 
 	// service
 	authService := authService.NewAuthServiceInterface(&userRepository, &tokoRepository, db)
-	userService := userService.NewUserServiceInterface(&userRepository, db)
+	provinceService := provinceService.NewProvinceServiceInterface()
+	userService := userService.NewUserServiceInterface(&userRepository, db, &provinceService)
 	alamatService := alamatService.NewAlamatServiceInterface(&alamatRepository, db)
 	tokoService := tokoService.NewTokoServiceInterface(&tokoRepository, db)
-	provinceService := provinceService.NewProvinceServiceInterface()
 	// httpBinService := httpbin.NewHttpBinServiceInterface(&httpBinRestClient)
 
 	// controller
