@@ -124,7 +124,7 @@ func (alamatService *alamatService) DeleteAlamatByID(ctx context.Context, id, us
 
 	tx := alamatService.DB.Begin()
 
-	err = alamatService.AlamatRepositoryInterface.Delete(ctx, tx, alamatData, id, userID)
+	err = alamatService.AlamatRepositoryInterface.Delete(ctx, tx, alamatData, alamatData.ID, userID)
 	if err != nil {
 		tx.Rollback()
 		return err

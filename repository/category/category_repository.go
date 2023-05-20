@@ -45,3 +45,12 @@ func (categoryRepository *categoryRepository) FindByID(ctx context.Context, id i
 
 	return category, nil
 }
+
+func (categoryRepository *categoryRepository) Delete(ctx context.Context, tx *gorm.DB, category entity.Category, id int) error {
+	err := tx.WithContext(ctx).Where("category.id = ?", id).Delete(&category).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

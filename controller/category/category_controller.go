@@ -28,6 +28,7 @@ func NewCategoryController(categoryService *category.CategoryServiceInterface, c
 func (controller CategoryController) Route(app *fiber.App) {
 	app.Post("/category", middleware.AuthenticateJWT(controller.Config), controller.CreateCategory)
 	app.Put("/category/:id", middleware.AuthenticateJWT(controller.Config), controller.UpdateCategoryByID)
+	app.Delete("/category/:id", middleware.AuthenticateJWT(controller.Config), controller.DeleteCategoryByID)
 }
 
 func (controller CategoryController) CreateCategory(c *fiber.Ctx) error {
@@ -147,6 +148,55 @@ func (controller CategoryController) UpdateCategoryByID(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(model.GeneralResponse{
 		Status:  true,
 		Message: "Succeed to PUT data",
+		Errors:  nil,
+		Data:    "",
+	})
+}
+
+func (controller CategoryController) DeleteCategoryByID(c *fiber.Ctx) error {
+	userID := c.Locals("id").(int)
+	idStr := c.Params("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Status:  false,
+			Message: "Failed to PUT data",
+			Errors:  []string{"id is empty"},
+			Data:    nil,
+		})
+	}
+
+	err = controller.CategoryServiceInterface.DeleteCategoryByID(c.Context(), id, userID)
+	if err != nil {
+		if strings.Contains(err.Error(), "Unauthorized") {
+			return c.Status(fiber.StatusUnauthorized).JSON(model.GeneralResponse{
+				Status:  false,
+				Message: "Failed to DELETE data",
+				Errors:  []string{"Unauthorized"},
+				Data:    nil,
+			})
+		}
+
+		if strings.Contains(err.Error(), constants.ErrCategoryNotFound.Error()) {
+			return c.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+				Status:  false,
+				Message: "Failed to DELETE data",
+				Errors:  []string{constants.ErrRecordNotFound.Error()},
+				Data:    nil,
+			})
+		}
+
+		return c.Status(fiber.StatusInternalServerError).JSON(model.GeneralResponse{
+			Status:  false,
+			Message: "Failed to DELETE data",
+			Errors:  []string{err.Error()},
+			Data:    nil,
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(model.GeneralResponse{
+		Status:  true,
+		Message: "Succeed to DELETE data",
 		Errors:  nil,
 		Data:    "",
 	})

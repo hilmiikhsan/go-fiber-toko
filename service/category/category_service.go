@@ -90,3 +90,35 @@ func (categoryService *categoryService) UpdateCategoryByID(ctx context.Context, 
 
 	return nil
 }
+
+func (categoryService *categoryService) DeleteCategoryByID(ctx context.Context, id, userID int) error {
+	userData, err := categoryService.UserRepositoryInterface.FindByID(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	if !userData.IsAdmin {
+		return errors.New("Unauthorized")
+	}
+
+	categoryData, err := categoryService.CategoryRepositoryInterface.FindByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	tx := categoryService.DB.Begin()
+
+	err = categoryService.CategoryRepositoryInterface.Delete(ctx, tx, categoryData, categoryData.ID)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	err = tx.Commit().Error
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return nil
+}
