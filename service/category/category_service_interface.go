@@ -11,4 +11,5 @@ type CategoryServiceInterface interface {
 	UpdateCategoryByID(ctx context.Context, id, userID int, category model.CategoryModel) error
 	DeleteCategoryByID(ctx context.Context, id, userID int) error
 	GetAllCategory(ctx context.Context, userID int) ([]model.GetCategoryModel, error)
+	GetCategoryByID(ctx context.Context, id, userID int) (model.GetCategoryModel, error)
 }

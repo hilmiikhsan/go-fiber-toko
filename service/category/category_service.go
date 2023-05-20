@@ -149,3 +149,28 @@ func (categoryService *categoryService) GetAllCategory(ctx context.Context, user
 
 	return tmpCategoryData, nil
 }
+
+func (categoryService *categoryService) GetCategoryByID(ctx context.Context, id, userID int) (model.GetCategoryModel, error) {
+	tmpCategoryData := model.GetCategoryModel{}
+
+	userData, err := categoryService.UserRepositoryInterface.FindByID(ctx, userID)
+	if err != nil {
+		return tmpCategoryData, err
+	}
+
+	if !userData.IsAdmin {
+		return tmpCategoryData, errors.New("Unauthorized")
+	}
+
+	data, err := categoryService.CategoryRepositoryInterface.FindByID(ctx, id)
+	if err != nil {
+		return tmpCategoryData, err
+	}
+
+	tmpCategoryData = model.GetCategoryModel{
+		ID:           data.ID,
+		NamaCategory: data.NamaCategory,
+	}
+
+	return tmpCategoryData, nil
+}
