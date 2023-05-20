@@ -122,3 +122,30 @@ func (categoryService *categoryService) DeleteCategoryByID(ctx context.Context, 
 
 	return nil
 }
+
+func (categoryService *categoryService) GetAllCategory(ctx context.Context, userID int) ([]model.GetCategoryModel, error) {
+	tmpCategoryData := []model.GetCategoryModel{}
+
+	userData, err := categoryService.UserRepositoryInterface.FindByID(ctx, userID)
+	if err != nil {
+		return tmpCategoryData, err
+	}
+
+	if !userData.IsAdmin {
+		return tmpCategoryData, errors.New("Unauthorized")
+	}
+
+	data, err := categoryService.CategoryRepositoryInterface.FindAll(ctx)
+	if err != nil {
+		return tmpCategoryData, err
+	}
+
+	for _, x := range data {
+		tmpCategoryData = append(tmpCategoryData, model.GetCategoryModel{
+			ID:           x.ID,
+			NamaCategory: x.NamaCategory,
+		})
+	}
+
+	return tmpCategoryData, nil
+}

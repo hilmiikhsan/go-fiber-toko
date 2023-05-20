@@ -12,4 +12,5 @@ type CategoryRepositoryInterface interface {
 	Update(ctx context.Context, tx *gorm.DB, category entity.Category, id int) error
 	FindByID(ctx context.Context, id int) (entity.Category, error)
 	Delete(ctx context.Context, tx *gorm.DB, category entity.Category, id int) error
+	FindAll(ctx context.Context) ([]entity.Category, error)
 }

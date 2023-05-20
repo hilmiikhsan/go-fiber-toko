@@ -29,6 +29,7 @@ func (controller CategoryController) Route(app *fiber.App) {
 	app.Post("/category", middleware.AuthenticateJWT(controller.Config), controller.CreateCategory)
 	app.Put("/category/:id", middleware.AuthenticateJWT(controller.Config), controller.UpdateCategoryByID)
 	app.Delete("/category/:id", middleware.AuthenticateJWT(controller.Config), controller.DeleteCategoryByID)
+	app.Get("/category", middleware.AuthenticateJWT(controller.Config), controller.GetAllCategory)
 }
 
 func (controller CategoryController) CreateCategory(c *fiber.Ctx) error {
@@ -199,5 +200,35 @@ func (controller CategoryController) DeleteCategoryByID(c *fiber.Ctx) error {
 		Message: "Succeed to DELETE data",
 		Errors:  nil,
 		Data:    "",
+	})
+}
+
+func (controller CategoryController) GetAllCategory(c *fiber.Ctx) error {
+	userID := c.Locals("id").(int)
+
+	data, err := controller.CategoryServiceInterface.GetAllCategory(c.Context(), userID)
+	if err != nil {
+		if strings.Contains(err.Error(), "Unauthorized") {
+			return c.Status(fiber.StatusUnauthorized).JSON(model.GeneralResponse{
+				Status:  false,
+				Message: "Failed to GET data",
+				Errors:  []string{"Unauthorized"},
+				Data:    nil,
+			})
+		}
+
+		return c.Status(fiber.StatusInternalServerError).JSON(model.GeneralResponse{
+			Status:  false,
+			Message: "Failed to GET data",
+			Errors:  []string{err.Error()},
+			Data:    nil,
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(model.GeneralResponse{
+		Status:  true,
+		Message: "Succeed to GET data",
+		Errors:  nil,
+		Data:    data,
 	})
 }

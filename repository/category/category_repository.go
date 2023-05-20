@@ -54,3 +54,13 @@ func (categoryRepository *categoryRepository) Delete(ctx context.Context, tx *go
 
 	return nil
 }
+
+func (categoryRepository *categoryRepository) FindAll(ctx context.Context) ([]entity.Category, error) {
+	results := []entity.Category{}
+	err := categoryRepository.DB.WithContext(ctx).Find(&results).Error
+	if err != nil {
+		return results, err
+	}
+
+	return results, nil
+}
