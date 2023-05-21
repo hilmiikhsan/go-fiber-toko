@@ -10,4 +10,5 @@ import (
 type ProductServiceInterface interface {
 	CreateProduct(ctx context.Context, product model.ProductModel, photos []*multipart.FileHeader, userID int) error
 	UpdateProductByID(ctx context.Context, product model.ProductModel, photos []*multipart.FileHeader, id, userID int) error
+	DeleteProductByID(ctx context.Context, id, userID int) error
 }

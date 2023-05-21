@@ -287,7 +287,7 @@ func (controller UserController) DeleteAlamatByID(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
 			Status:  false,
 			Message: "Failed to DELETE data",
-			Errors:  []string{err.Error()},
+			Errors:  []string{"id is empty"},
 			Data:    nil,
 		})
 	}

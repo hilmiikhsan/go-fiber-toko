@@ -32,11 +32,6 @@ func (fotoProdukRepository *fotoProdukRepository) Update(ctx context.Context, tx
 		return err
 	}
 
-	// err := tx.WithContext(ctx).Where("foto_produk.id_produk = ?", productID).Save(&fotoProduk).Error
-	// if err != nil {
-	// 	return err
-	// }
-
 	return nil
 }
 

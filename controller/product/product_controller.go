@@ -29,6 +29,7 @@ func NewProductController(producService *product.ProductServiceInterface, config
 func (controller ProductController) Route(app *fiber.App) {
 	app.Post("/product", middleware.AuthenticateJWT(controller.Config), controller.CreateProduct)
 	app.Put("/product/:id", middleware.AuthenticateJWT(controller.Config), controller.UpdateProductByID)
+	app.Delete("/product/:id", middleware.AuthenticateJWT(controller.Config), controller.DeleteProductByID)
 }
 
 func (controller ProductController) CreateProduct(c *fiber.Ctx) error {
@@ -340,6 +341,46 @@ func (controller ProductController) UpdateProductByID(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(model.GeneralResponse{
 		Status:  true,
 		Message: "Succeed to UPDATE data",
+		Errors:  nil,
+		Data:    "",
+	})
+}
+
+func (controller ProductController) DeleteProductByID(c *fiber.Ctx) error {
+	userID := c.Locals("id").(int)
+	idStr := c.Params("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Status:  false,
+			Message: "Failed to DELETE data",
+			Errors:  []string{"id is empty"},
+			Data:    nil,
+		})
+	}
+
+	err = controller.ProductServiceInterface.DeleteProductByID(c.Context(), id, userID)
+	if err != nil {
+		if strings.Contains(err.Error(), constants.ErrProductNotFound.Error()) {
+			return c.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+				Status:  false,
+				Message: "Failed to DELETE data",
+				Errors:  []string{"record not found"},
+				Data:    nil,
+			})
+		}
+
+		return c.Status(fiber.StatusInternalServerError).JSON(model.GeneralResponse{
+			Status:  false,
+			Message: "Failed to DELETE data",
+			Errors:  []string{err.Error()},
+			Data:    nil,
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(model.GeneralResponse{
+		Status:  true,
+		Message: "Succeed to DELETE data",
 		Errors:  nil,
 		Data:    "",
 	})

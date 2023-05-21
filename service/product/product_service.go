@@ -181,3 +181,31 @@ func (productService *productService) UpdateProductByID(ctx context.Context, pro
 
 	return nil
 }
+
+func (productService *productService) DeleteProductByID(ctx context.Context, id, userID int) error {
+	productData, err := productService.ProductRepositoryInterface.FindByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	tokoData, err := productService.TokoRepositoryInterface.FindByUserID(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	tx := productService.DB.Begin()
+
+	err = productService.ProductRepositoryInterface.Delete(ctx, tx, productData, productData.ID, tokoData.ID)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	err = tx.Commit().Error
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return nil
+}

@@ -45,3 +45,12 @@ func (productRepository *productRepository) FindByID(ctx context.Context, id int
 
 	return product, nil
 }
+
+func (productRepository *productRepository) Delete(ctx context.Context, tx *gorm.DB, product entity.Produk, id, idToko int) error {
+	err := tx.WithContext(ctx).Where("produk.id = ?", id).Where("produk.id_toko = ?", idToko).Delete(&product).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
