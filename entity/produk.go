@@ -6,8 +6,8 @@ type Produk struct {
 	ID            int       `gorm:"primaryKey;column:id;autoIncrement;type:int(11);not null"`
 	NamaProduk    string    `gorm:"column:nama_produk;type:varchar(255);not null"`
 	Slug          string    `gorm:"column:slug;type:varchar(255);not null"`
-	HargaReseller string    `gorm:"column:harga_reseller;type:varchar(255);not null"`
-	HargaKonsumen string    `gorm:"column:harga_konsumen;type:varchar(255);not null"`
+	HargaReseller int       `gorm:"column:harga_reseller;type:int(11);not null"`
+	HargaKonsumen int       `gorm:"column:harga_konsumen;type:int(11);not null"`
 	Stok          int       `gorm:"column:stok;type:int(11);not null"`
 	Deskripsi     string    `gorm:"column:deskripsi;type:text;not null"`
 	UpdatedAt     time.Time `gorm:"column:updated_at;type:date;not null"`

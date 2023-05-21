@@ -4,12 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io"
 	"mime/multipart"
-	"os"
-	"path/filepath"
-	"time"
 
+	"github.com/hilmiikhsan/go_rest_api/common"
+	"github.com/hilmiikhsan/go_rest_api/constants"
 	"github.com/hilmiikhsan/go_rest_api/entity"
 	"github.com/hilmiikhsan/go_rest_api/model"
 	"github.com/hilmiikhsan/go_rest_api/repository/toko"
@@ -59,8 +57,8 @@ func (tokoService *tokoService) UpdateToko(ctx context.Context, namaToko string,
 	}
 
 	if len(photo.Filename) > 0 {
-		photoData = fmt.Sprintf("%d-%d%s", userID, time.Now().UnixNano(), filepath.Ext(photo.Filename))
-		err := SaveFile(photo, userID)
+		photoData = fmt.Sprintf("%d-%s", common.GenerateUniqueID(), photo.Filename)
+		err := common.SaveFile(photo, constants.TemporaryTokoFilePath)
 		if err != nil {
 			return err
 		}
@@ -112,32 +110,6 @@ func (tokoService *tokoService) GetAllToko(ctx context.Context, params *struct{ 
 	}
 
 	return response, nil
-}
-
-func SaveFile(file *multipart.FileHeader, userID int) error {
-	src, err := file.Open()
-	if err != nil {
-		return err
-	}
-	defer src.Close()
-
-	photoData := fmt.Sprintf("%d-%d%s", userID, time.Now().UnixNano(), filepath.Ext(file.Filename))
-
-	dst, err := os.Create("temp/" + photoData)
-	if err != nil {
-		return err
-	}
-	defer dst.Close()
-
-	if _, err = src.Seek(0, 0); err != nil {
-		return err
-	}
-
-	if _, err = io.Copy(dst, src); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func (tokoService *tokoService) GeTokoByID(ctx context.Context, id int) (model.GetTokoModel, error) {

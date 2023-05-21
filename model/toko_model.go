@@ -7,11 +7,6 @@ type TokoModel struct {
 	UserID   int    `json:"user_id"`
 }
 
-type UppdateTokoModel struct {
-	NamaToko string
-	Photo    string
-}
-
 type GetTokoModel struct {
 	ID       int    `json:"id"`
 	NamaToko string `json:"nama_toko"`

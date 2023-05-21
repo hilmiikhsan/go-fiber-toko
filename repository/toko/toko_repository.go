@@ -59,7 +59,7 @@ func (tokoRepository *tokoRepository) FindByIdAndUserID(ctx context.Context, id,
 
 func (tokoRepository *tokoRepository) FindAll(ctx context.Context, params *struct{ model.ParamsTokoModel }) ([]entity.Toko, error) {
 	results := []entity.Toko{}
-	query := tokoRepository.DB
+	query := tokoRepository.DB.Joins("JOIN user ON toko.id_user = user.id").Where("user.isAdmin = ?", 0)
 	var totalRows int64
 	offset := (params.Page - 1) * params.Limit
 
