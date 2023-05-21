@@ -64,7 +64,7 @@ func (tokoRepository *tokoRepository) FindAll(ctx context.Context, params *struc
 	offset := (params.Page - 1) * params.Limit
 
 	if params.Nama != "" {
-		query = query.Where("toko.name_toko LIKE ?", "%"+params.Nama+"%")
+		query = query.Where("toko.nama_toko LIKE ?", "%"+params.Nama+"%")
 	}
 
 	err := query.Model(&entity.Toko{}).Count(&totalRows).Error

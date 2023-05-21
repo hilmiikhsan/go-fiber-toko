@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/hilmiikhsan/go_rest_api/entity"
+	"github.com/hilmiikhsan/go_rest_api/model"
 	"gorm.io/gorm"
 )
 
@@ -53,4 +54,55 @@ func (productRepository *productRepository) Delete(ctx context.Context, tx *gorm
 	}
 
 	return nil
+}
+
+func (productRepository *productRepository) FindAll(ctx context.Context, params *struct{ model.ParamsProductModel }, idToko int) ([]entity.Produk, error) {
+	results := []entity.Produk{}
+	query := productRepository.DB.WithContext(ctx).
+		Table("produk").
+		Select("produk.*, toko.nama_toko, toko.url_foto, category.name_category").
+		Joins("JOIN toko ON produk.id_toko = toko.id").
+		Joins("JOIN category ON produk.id_category = category.id").
+		Where("produk.id_toko = ?", idToko)
+
+	// Preload Toko
+	query = query.Preload("Toko")
+
+	// Preload Category
+	query = query.Preload("Category")
+
+	var totalRows int64
+	offset := (params.Page - 1) * params.Limit
+
+	if params.NamaProduk != "" {
+		query = query.Where("produk.nama_produk LIKE ?", "%"+params.NamaProduk+"%")
+	}
+
+	if params.CategoryID > 0 {
+		query = query.Where("produk.id_category = ?", params.CategoryID)
+	}
+
+	if params.TokoID > 0 {
+		query = query.Where("produk.id_toko = ?", params.TokoID)
+	}
+
+	if params.MaxHarga > 0 {
+		query = query.Where("produk.harga_konsumen <= ?", params.MaxHarga)
+	}
+
+	if params.MinHarga > 0 {
+		query = query.Where("produk.harga_konsumen >= ?", params.MinHarga)
+	}
+
+	err := query.Model(&entity.Produk{}).Count(&totalRows).Error
+	if err != nil {
+		return results, err
+	}
+
+	err = query.Offset(offset).Limit(params.Limit).Find(&results).Error
+	if err != nil {
+		return results, err
+	}
+
+	return results, nil
 }

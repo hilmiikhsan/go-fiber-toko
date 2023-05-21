@@ -30,6 +30,7 @@ func (controller ProductController) Route(app *fiber.App) {
 	app.Post("/product", middleware.AuthenticateJWT(controller.Config), controller.CreateProduct)
 	app.Put("/product/:id", middleware.AuthenticateJWT(controller.Config), controller.UpdateProductByID)
 	app.Delete("/product/:id", middleware.AuthenticateJWT(controller.Config), controller.DeleteProductByID)
+	app.Get("/product", middleware.AuthenticateJWT(controller.Config), controller.GetAllProduct)
 }
 
 func (controller ProductController) CreateProduct(c *fiber.Ctx) error {
@@ -383,5 +384,43 @@ func (controller ProductController) DeleteProductByID(c *fiber.Ctx) error {
 		Message: "Succeed to DELETE data",
 		Errors:  nil,
 		Data:    "",
+	})
+}
+
+func (controller ProductController) GetAllProduct(c *fiber.Ctx) error {
+	userID := c.Locals("id").(int)
+	params := new(struct {
+		model.ParamsProductModel
+	})
+
+	err := c.QueryParser(params)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Status:  false,
+			Message: "Failed to GET data",
+			Errors:  []string{err.Error()},
+			Data:    nil,
+		})
+	}
+
+	data, err := controller.ProductServiceInterface.GetAllProduct(c.Context(), params, userID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(model.GeneralResponse{
+			Status:  false,
+			Message: "Failed to GET data",
+			Errors:  []string{err.Error()},
+			Data:    nil,
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(model.GeneralResponse{
+		Status:  true,
+		Message: "Succeed to GET data",
+		Errors:  nil,
+		Data: model.PaginationResponseProductModel{
+			Data:  data,
+			Page:  params.Page,
+			Limit: params.Limit,
+		},
 	})
 }

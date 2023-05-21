@@ -44,3 +44,15 @@ func (fotoProdukRepository *fotoProdukRepository) FindByProductID(ctx context.Co
 
 	return results, nil
 }
+
+func (fotoProdukRepository *fotoProdukRepository) FindAll(ctx context.Context, idToko []int) ([]entity.FotoProduk, error) {
+	results := []entity.FotoProduk{}
+	query := fotoProdukRepository.DB.Joins("JOIN produk ON foto_produk.id_produk = produk.id").Preload("Produk").Where("produk.id_toko IN (?)", idToko)
+
+	err := query.WithContext(ctx).Find(&results).Error
+	if err != nil {
+		return results, err
+	}
+
+	return results, nil
+}

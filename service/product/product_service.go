@@ -209,3 +209,73 @@ func (productService *productService) DeleteProductByID(ctx context.Context, id,
 
 	return nil
 }
+
+func (productService *productService) GetAllProduct(ctx context.Context, params *struct{ model.ParamsProductModel }, userID int) ([]model.GetProductModel, error) {
+	response := []model.GetProductModel{}
+	tokoIDs := []int{}
+
+	if params.Page < 1 {
+		params.Page = 1
+	}
+
+	if params.Limit < 1 {
+		params.Limit = 10
+	}
+
+	tokoData, err := productService.TokoRepositoryInterface.FindByUserID(ctx, userID)
+	if err != nil {
+		return response, err
+	}
+
+	data, err := productService.ProductRepositoryInterface.FindAll(ctx, params, tokoData.ID)
+	if err != nil {
+		return response, err
+	}
+
+	for _, dt := range data {
+		tokoIDs = append(tokoIDs, dt.IdToko)
+	}
+
+	photos, err := productService.FotoProdukRepositoryInterface.FindAll(ctx, tokoIDs)
+	if err != nil {
+		return response, err
+	}
+
+	photosByProductID := make(map[int][]entity.FotoProduk)
+	for _, photo := range photos {
+		photosByProductID[photo.Produk.ID] = append(photosByProductID[photo.Produk.ID], photo)
+	}
+
+	for _, x := range data {
+		photosModel := []model.FotoProdukModel{}
+		for _, photo := range photosByProductID[x.ID] {
+			photosModel = append(photosModel, model.FotoProdukModel{
+				ID:        photo.ID,
+				ProductID: photo.IdProduk,
+				Url:       photo.Url,
+			})
+		}
+
+		response = append(response, model.GetProductModel{
+			ID:            x.ID,
+			NamaProduk:    x.NamaProduk,
+			Slug:          x.Slug,
+			HargaReseller: x.HargaReseller,
+			HargaKonsumen: x.HargaKonsumen,
+			Stok:          x.Stok,
+			Deskripsi:     x.Deskripsi,
+			Toko: model.GetTokoModel{
+				ID:       x.IdToko,
+				NamaToko: x.Toko.NamaToko,
+				UrlFoto:  x.Toko.UrlFoto,
+			},
+			Category: model.GetCategoryModel{
+				ID:           x.IdCategory,
+				NamaCategory: x.Category.NamaCategory,
+			},
+			Photos: photosModel,
+		})
+	}
+
+	return response, nil
+}
