@@ -71,7 +71,7 @@ func (controller TokoController) UpdateToko(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
 			Status:  false,
 			Message: "Failed to UPDATE data",
-			Errors:  []string{err.Error()},
+			Errors:  []string{"id is empty"},
 			Data:    nil,
 		})
 	}

@@ -28,12 +28,13 @@ func NewProductController(producService *product.ProductServiceInterface, config
 
 func (controller ProductController) Route(app *fiber.App) {
 	app.Post("/product", middleware.AuthenticateJWT(controller.Config), controller.CreateProduct)
+	app.Put("/product/:id", middleware.AuthenticateJWT(controller.Config), controller.UpdateProductByID)
 }
 
 func (controller ProductController) CreateProduct(c *fiber.Ctx) error {
 	userID := c.Locals("id").(int)
 	var photos []*multipart.FileHeader
-	var request model.CreateProductModel
+	var request model.ProductModel
 	namaProduk := c.FormValue("nama_produk")
 	categoryIdStr := c.FormValue("category_id")
 	hargaResellerStr := c.FormValue("harga_reseller")
@@ -81,7 +82,7 @@ func (controller ProductController) CreateProduct(c *fiber.Ctx) error {
 		})
 	}
 
-	request = model.CreateProductModel{
+	request = model.ProductModel{
 		NamaProduk:    namaProduk,
 		CategoryID:    categoryID,
 		HargaReseller: hargaReseller,
@@ -174,5 +175,172 @@ func (controller ProductController) CreateProduct(c *fiber.Ctx) error {
 		Message: "Succeed to POST data",
 		Errors:  nil,
 		Data:    4,
+	})
+}
+
+func (controller ProductController) UpdateProductByID(c *fiber.Ctx) error {
+	userID := c.Locals("id").(int)
+	var photos []*multipart.FileHeader
+	var request model.ProductModel
+	namaProduk := c.FormValue("nama_produk")
+	categoryIdStr := c.FormValue("category_id")
+	hargaResellerStr := c.FormValue("harga_reseller")
+	hargaKonsumenStr := c.FormValue("harga_konsumen")
+	stokStr := c.FormValue("stok")
+	deskripsi := c.FormValue("deskripsi")
+
+	idStr := c.Params("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Status:  false,
+			Message: "Failed to UPDATE data",
+			Errors:  []string{"id is empty"},
+			Data:    nil,
+		})
+	}
+
+	categoryID, err := strconv.Atoi(categoryIdStr)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Status:  false,
+			Message: "Failed to UPDATE data",
+			Errors:  []string{"category id is empty"},
+			Data:    nil,
+		})
+	}
+
+	hargaReseller, err := strconv.Atoi(hargaResellerStr)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Status:  false,
+			Message: "Failed to UPDATE data",
+			Errors:  []string{"harga reseller is empty"},
+			Data:    nil,
+		})
+	}
+
+	hargaKonsumen, err := strconv.Atoi(hargaKonsumenStr)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Status:  false,
+			Message: "Failed to UPDATE data",
+			Errors:  []string{"harga konsumen is empty"},
+			Data:    nil,
+		})
+	}
+
+	stok, err := strconv.Atoi(stokStr)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Status:  false,
+			Message: "Failed to UPDATE data",
+			Errors:  []string{"stok is empty"},
+			Data:    nil,
+		})
+	}
+
+	request = model.ProductModel{
+		NamaProduk:    namaProduk,
+		CategoryID:    categoryID,
+		HargaReseller: hargaReseller,
+		HargaKonsumen: hargaKonsumen,
+		Stok:          stok,
+		Deskripsi:     deskripsi,
+	}
+
+	form, err := c.MultipartForm()
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Status:  false,
+			Message: "Failed to UPDATE data",
+			Errors:  []string{"photos is empty"},
+			Data:    nil,
+		})
+	}
+
+	photos = form.File["photos"]
+
+	allowedExtensions := []string{".jpg", ".jpeg", ".png"}
+	invalidExtensions := make([]string, 0)
+
+	for _, photo := range photos {
+		validExtension := false
+
+		for _, ext := range allowedExtensions {
+			if strings.ToLower(filepath.Ext(photo.Filename)) == ext {
+				validExtension = true
+				break
+			}
+		}
+
+		if !validExtension {
+			invalidExtensions = append(invalidExtensions, photo.Filename)
+		}
+	}
+
+	if len(invalidExtensions) > 0 {
+		return c.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Status:  false,
+			Message: "Failed to UPDATE data",
+			Errors:  []string{"Invalid file extension"},
+			Data:    nil,
+		})
+	}
+
+	maxFileSize := 1 * 1024 * 1024
+	for _, pt := range photos {
+		if pt.Size > int64(maxFileSize) {
+			return c.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+				Status:  false,
+				Message: "Failed to UPDATE data",
+				Errors:  []string{"Photo size exceeds the limit"},
+				Data:    nil,
+			})
+		}
+	}
+
+	err = controller.ProductServiceInterface.UpdateProductByID(c.Context(), request, photos, id, userID)
+	if err != nil {
+		if strings.Contains(err.Error(), constants.ErrProductNotFound.Error()) {
+			return c.Status(fiber.StatusNotFound).JSON(model.GeneralResponse{
+				Status:  false,
+				Message: "Failed to UPDATE data",
+				Errors:  []string{err.Error()},
+				Data:    nil,
+			})
+		}
+
+		if strings.Contains(err.Error(), constants.ErrNamaProdukIsRequired.Error()) {
+			return c.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+				Status:  false,
+				Message: "Failed to UPDATE data",
+				Errors:  []string{"nama produk is empty"},
+				Data:    nil,
+			})
+		}
+
+		if strings.Contains(err.Error(), constants.ErrDeskripsiIsRequired.Error()) {
+			return c.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+				Status:  false,
+				Message: "Failed to UPDATE data",
+				Errors:  []string{"deskripsi is empty"},
+				Data:    nil,
+			})
+		}
+
+		return c.Status(fiber.StatusInternalServerError).JSON(model.GeneralResponse{
+			Status:  false,
+			Message: "Failed to UPDATE data",
+			Errors:  []string{err.Error()},
+			Data:    nil,
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(model.GeneralResponse{
+		Status:  true,
+		Message: "Succeed to UPDATE data",
+		Errors:  nil,
+		Data:    "",
 	})
 }

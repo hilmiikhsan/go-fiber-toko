@@ -33,7 +33,7 @@ type productService struct {
 	foto_produk.FotoProdukRepositoryInterface
 }
 
-func (productService *productService) CreateProduct(ctx context.Context, product model.CreateProductModel, photos []*multipart.FileHeader, userID int) error {
+func (productService *productService) CreateProduct(ctx context.Context, product model.ProductModel, photos []*multipart.FileHeader, userID int) error {
 	var photoData string
 	var fotoProdukModel entity.FotoProduk
 
@@ -76,8 +76,10 @@ func (productService *productService) CreateProduct(ctx context.Context, product
 			photoData = fmt.Sprintf("%d-%s", common.GenerateUniqueID(), photo.Filename)
 			err := common.SaveFile(photo, constants.TemporaryProductFilePath)
 			if err != nil {
+				tx.Rollback()
 				return err
 			}
+			fmt.Println(photoData)
 
 			fotoProdukModel = entity.FotoProduk{
 				IdProduk: productID,
@@ -94,6 +96,86 @@ func (productService *productService) CreateProduct(ctx context.Context, product
 
 	err = tx.Commit().Error
 	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return nil
+}
+
+func (productService *productService) UpdateProductByID(ctx context.Context, product model.ProductModel, photos []*multipart.FileHeader, id, userID int) error {
+	var photoData string
+	var fotoProdukModel entity.FotoProduk
+
+	if product.NamaProduk == "" {
+		return errors.New("Nama Produk is required")
+	}
+
+	if product.Deskripsi == "" {
+		return errors.New("Deskripsi is required")
+	}
+
+	productData, err := productService.ProductRepositoryInterface.FindByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	tokoData, err := productService.TokoRepositoryInterface.FindByUserID(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	tx := productService.DB.Begin()
+
+	productSlug := slug.Make(product.NamaProduk)
+
+	productModel := entity.Produk{
+		NamaProduk:    product.NamaProduk,
+		Slug:          productSlug,
+		IdCategory:    product.CategoryID,
+		HargaReseller: product.HargaReseller,
+		HargaKonsumen: product.HargaKonsumen,
+		Stok:          product.Stok,
+		Deskripsi:     product.Deskripsi,
+		IdToko:        tokoData.ID,
+	}
+
+	err = productService.ProductRepositoryInterface.Update(ctx, tx, productModel, productData.ID, tokoData.ID)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	fotoProdukData, err := productService.FotoProdukRepositoryInterface.FindByProductID(ctx, tx, productData.ID)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	for i, photo := range photos {
+		if len(photo.Filename) > 0 {
+			photoData = fmt.Sprintf("%d-%s", common.GenerateUniqueID(), photo.Filename)
+			err := common.SaveFile(photo, constants.TemporaryProductFilePath)
+			if err != nil {
+				tx.Rollback()
+				return err
+			}
+
+			fotoProdukModel = entity.FotoProduk{
+				Url: photoData,
+			}
+
+			err = productService.FotoProdukRepositoryInterface.Update(ctx, tx, fotoProdukModel, fotoProdukData[i].ID, productData.ID)
+			if err != nil {
+				tx.Rollback()
+				return err
+			}
+		}
+	}
+
+	err = tx.Commit().Error
+	if err != nil {
+		tx.Rollback()
 		return err
 	}
 

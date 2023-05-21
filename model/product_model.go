@@ -1,6 +1,6 @@
 package model
 
-type CreateProductModel struct {
+type ProductModel struct {
 	NamaProduk    string
 	CategoryID    int
 	HargaReseller int
