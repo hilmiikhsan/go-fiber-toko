@@ -39,9 +39,19 @@ func (productRepository *productRepository) Update(ctx context.Context, tx *gorm
 
 func (productRepository *productRepository) FindByID(ctx context.Context, id int) (entity.Produk, error) {
 	product := entity.Produk{}
-	result := productRepository.DB.WithContext(ctx).Where("produk.id = ?", id).Find(&product)
+	query := productRepository.DB.WithContext(ctx).
+		Table("produk").
+		Select("produk.*, toko.nama_toko, toko.url_foto, category.name_category").
+		Joins("JOIN toko ON produk.id_toko = toko.id").
+		Joins("JOIN category ON produk.id_category = category.id").
+		Where("produk.id = ?", id)
+
+	query = query.Preload("Toko")
+	query = query.Preload("Category")
+
+	result := query.Find(&product)
 	if result.RowsAffected == 0 {
-		return entity.Produk{}, errors.New("Produk tidak ditemukan")
+		return entity.Produk{}, errors.New("No Data Product")
 	}
 
 	return product, nil
@@ -65,10 +75,7 @@ func (productRepository *productRepository) FindAll(ctx context.Context, params 
 		Joins("JOIN category ON produk.id_category = category.id").
 		Where("produk.id_toko = ?", idToko)
 
-	// Preload Toko
 	query = query.Preload("Toko")
-
-	// Preload Category
 	query = query.Preload("Category")
 
 	var totalRows int64

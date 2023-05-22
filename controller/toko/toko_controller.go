@@ -197,7 +197,7 @@ func (controller TokoController) GetTokoByID(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
 			Status:  false,
 			Message: "Failed to GET data",
-			Errors:  []string{err.Error()},
+			Errors:  []string{"id is empty"},
 			Data:    nil,
 		})
 	}

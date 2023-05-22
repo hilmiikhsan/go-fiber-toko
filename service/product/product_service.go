@@ -279,3 +279,55 @@ func (productService *productService) GetAllProduct(ctx context.Context, params 
 
 	return response, nil
 }
+
+func (productService *productService) GetProductByID(ctx context.Context, id, userID int) (model.GetProductModel, error) {
+	response := model.GetProductModel{}
+	photoDatas := []model.FotoProdukModel{}
+
+	_, err := productService.TokoRepositoryInterface.FindByUserID(ctx, userID)
+	if err != nil {
+		return response, err
+	}
+
+	data, err := productService.ProductRepositoryInterface.FindByID(ctx, id)
+	if err != nil {
+		return response, err
+	}
+
+	tx := productService.DB.Begin()
+
+	photos, err := productService.FotoProdukRepositoryInterface.FindByProductID(ctx, tx, data.ID)
+	if err != nil {
+		tx.Rollback()
+		return response, err
+	}
+
+	for _, photo := range photos {
+		photoDatas = append(photoDatas, model.FotoProdukModel{
+			ID:        photo.ID,
+			ProductID: photo.IdProduk,
+			Url:       photo.Url,
+		})
+	}
+
+	response = model.GetProductModel{
+		ID:            data.ID,
+		NamaProduk:    data.NamaProduk,
+		Slug:          data.Slug,
+		HargaReseller: data.HargaReseller,
+		HargaKonsumen: data.HargaKonsumen,
+		Stok:          data.Stok,
+		Deskripsi:     data.Deskripsi,
+		Toko: model.GetTokoModel{
+			ID:       data.Toko.ID,
+			NamaToko: data.Toko.NamaToko,
+		},
+		Category: model.GetCategoryModel{
+			ID:           data.IdToko,
+			NamaCategory: data.Category.NamaCategory,
+		},
+		Photos: photoDatas,
+	}
+
+	return response, nil
+}

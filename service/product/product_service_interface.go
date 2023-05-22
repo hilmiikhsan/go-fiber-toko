@@ -12,4 +12,5 @@ type ProductServiceInterface interface {
 	UpdateProductByID(ctx context.Context, product model.ProductModel, photos []*multipart.FileHeader, id, userID int) error
 	DeleteProductByID(ctx context.Context, id, userID int) error
 	GetAllProduct(ctx context.Context, params *struct{ model.ParamsProductModel }, userID int) ([]model.GetProductModel, error)
+	GetProductByID(ctx context.Context, id, userID int) (model.GetProductModel, error)
 }
