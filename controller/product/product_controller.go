@@ -165,6 +165,15 @@ func (controller ProductController) CreateProduct(c *fiber.Ctx) error {
 			})
 		}
 
+		if strings.Contains(err.Error(), constants.ErrCategoryNotFound.Error()) {
+			return c.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+				Status:  false,
+				Message: "Failed to POST data",
+				Errors:  []string{err.Error()},
+				Data:    nil,
+			})
+		}
+
 		return c.Status(fiber.StatusInternalServerError).JSON(model.GeneralResponse{
 			Status:  false,
 			Message: "Failed to POST data",
@@ -389,7 +398,6 @@ func (controller ProductController) DeleteProductByID(c *fiber.Ctx) error {
 }
 
 func (controller ProductController) GetAllProduct(c *fiber.Ctx) error {
-	userID := c.Locals("id").(int)
 	params := new(struct {
 		model.ParamsProductModel
 	})
@@ -404,7 +412,7 @@ func (controller ProductController) GetAllProduct(c *fiber.Ctx) error {
 		})
 	}
 
-	data, err := controller.ProductServiceInterface.GetAllProduct(c.Context(), params, userID)
+	data, err := controller.ProductServiceInterface.GetAllProduct(c.Context(), params)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(model.GeneralResponse{
 			Status:  false,
@@ -427,7 +435,6 @@ func (controller ProductController) GetAllProduct(c *fiber.Ctx) error {
 }
 
 func (controller ProductController) GetProductByID(c *fiber.Ctx) error {
-	userID := c.Locals("id").(int)
 	idStr := c.Params("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
@@ -439,7 +446,7 @@ func (controller ProductController) GetProductByID(c *fiber.Ctx) error {
 		})
 	}
 
-	data, err := controller.ProductServiceInterface.GetProductByID(c.Context(), id, userID)
+	data, err := controller.ProductServiceInterface.GetProductByID(c.Context(), id)
 	if err != nil {
 		if strings.Contains(err.Error(), constants.ErrProductNotFound.Error()) {
 			return c.Status(fiber.StatusNotFound).JSON(model.GeneralResponse{

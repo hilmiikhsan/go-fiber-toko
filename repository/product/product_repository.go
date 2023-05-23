@@ -66,14 +66,14 @@ func (productRepository *productRepository) Delete(ctx context.Context, tx *gorm
 	return nil
 }
 
-func (productRepository *productRepository) FindAll(ctx context.Context, params *struct{ model.ParamsProductModel }, idToko int) ([]entity.Produk, error) {
+func (productRepository *productRepository) FindAll(ctx context.Context, params *struct{ model.ParamsProductModel }) ([]entity.Produk, error) {
 	results := []entity.Produk{}
 	query := productRepository.DB.WithContext(ctx).
 		Table("produk").
 		Select("produk.*, toko.nama_toko, toko.url_foto, category.name_category").
 		Joins("JOIN toko ON produk.id_toko = toko.id").
 		Joins("JOIN category ON produk.id_category = category.id").
-		Where("produk.id_toko = ?", idToko)
+		Order("created_at DESC")
 
 	query = query.Preload("Toko")
 	query = query.Preload("Category")

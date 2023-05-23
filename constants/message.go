@@ -12,4 +12,5 @@ var (
 	ErrCategoryNotFound     = errors.New("Category not found")
 	ErrNamaProdukIsRequired = errors.New("Nama Produk is required")
 	ErrDeskripsiIsRequired  = errors.New("Deskripsi is required")
+	ErrAlamatNotFound       = errors.New("Alamat tidak ditemukan")
 )

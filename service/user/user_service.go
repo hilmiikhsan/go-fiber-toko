@@ -70,6 +70,11 @@ func (userService *userService) GetProfile(ctx context.Context, userID int) (mod
 
 func (userService *userService) UpdateProfile(ctx context.Context, user model.UpdateUserProfileModel, userID int) error {
 	tx := userService.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
 
 	date, err := time.Parse(constants.Layout, user.TanggalLahir)
 	exception.PanicLogging(err)

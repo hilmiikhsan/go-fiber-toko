@@ -11,18 +11,20 @@ import (
 	"github.com/hilmiikhsan/go_rest_api/constants"
 	"github.com/hilmiikhsan/go_rest_api/entity"
 	"github.com/hilmiikhsan/go_rest_api/model"
+	"github.com/hilmiikhsan/go_rest_api/repository/category"
 	"github.com/hilmiikhsan/go_rest_api/repository/foto_produk"
 	"github.com/hilmiikhsan/go_rest_api/repository/product"
 	"github.com/hilmiikhsan/go_rest_api/repository/toko"
 	"gorm.io/gorm"
 )
 
-func NewProductServiceInterface(productRepository *product.ProductRepositoryInterface, db *gorm.DB, tokoRepository *toko.TokoRepositoryInterface, fotoProdukRepository *foto_produk.FotoProdukRepositoryInterface) ProductServiceInterface {
+func NewProductServiceInterface(productRepository *product.ProductRepositoryInterface, db *gorm.DB, tokoRepository *toko.TokoRepositoryInterface, fotoProdukRepository *foto_produk.FotoProdukRepositoryInterface, categoryRepository *category.CategoryRepositoryInterface) ProductServiceInterface {
 	return &productService{
 		ProductRepositoryInterface:    *productRepository,
 		DB:                            db,
 		TokoRepositoryInterface:       *tokoRepository,
 		FotoProdukRepositoryInterface: *fotoProdukRepository,
+		CategoryRepositoryInterface:   *categoryRepository,
 	}
 }
 
@@ -31,6 +33,7 @@ type productService struct {
 	*gorm.DB
 	toko.TokoRepositoryInterface
 	foto_produk.FotoProdukRepositoryInterface
+	category.CategoryRepositoryInterface
 }
 
 func (productService *productService) CreateProduct(ctx context.Context, product model.ProductModel, photos []*multipart.FileHeader, userID int) error {
@@ -45,12 +48,22 @@ func (productService *productService) CreateProduct(ctx context.Context, product
 		return errors.New("Deskripsi is required")
 	}
 
+	_, err := productService.CategoryRepositoryInterface.FindByID(ctx, product.CategoryID)
+	if err != nil {
+		return err
+	}
+
 	tokoData, err := productService.TokoRepositoryInterface.FindByUserID(ctx, userID)
 	if err != nil {
 		return err
 	}
 
 	tx := productService.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
 
 	productSlug := slug.Make(product.NamaProduk)
 
@@ -79,7 +92,6 @@ func (productService *productService) CreateProduct(ctx context.Context, product
 				tx.Rollback()
 				return err
 			}
-			fmt.Println(photoData)
 
 			fotoProdukModel = entity.FotoProduk{
 				IdProduk: productID,
@@ -126,6 +138,11 @@ func (productService *productService) UpdateProductByID(ctx context.Context, pro
 	}
 
 	tx := productService.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
 
 	productSlug := slug.Make(product.NamaProduk)
 
@@ -194,6 +211,11 @@ func (productService *productService) DeleteProductByID(ctx context.Context, id,
 	}
 
 	tx := productService.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
 
 	err = productService.ProductRepositoryInterface.Delete(ctx, tx, productData, productData.ID, tokoData.ID)
 	if err != nil {
@@ -210,7 +232,7 @@ func (productService *productService) DeleteProductByID(ctx context.Context, id,
 	return nil
 }
 
-func (productService *productService) GetAllProduct(ctx context.Context, params *struct{ model.ParamsProductModel }, userID int) ([]model.GetProductModel, error) {
+func (productService *productService) GetAllProduct(ctx context.Context, params *struct{ model.ParamsProductModel }) ([]model.GetProductModel, error) {
 	response := []model.GetProductModel{}
 	tokoIDs := []int{}
 
@@ -222,12 +244,7 @@ func (productService *productService) GetAllProduct(ctx context.Context, params 
 		params.Limit = 10
 	}
 
-	tokoData, err := productService.TokoRepositoryInterface.FindByUserID(ctx, userID)
-	if err != nil {
-		return response, err
-	}
-
-	data, err := productService.ProductRepositoryInterface.FindAll(ctx, params, tokoData.ID)
+	data, err := productService.ProductRepositoryInterface.FindAll(ctx, params)
 	if err != nil {
 		return response, err
 	}
@@ -280,14 +297,9 @@ func (productService *productService) GetAllProduct(ctx context.Context, params 
 	return response, nil
 }
 
-func (productService *productService) GetProductByID(ctx context.Context, id, userID int) (model.GetProductModel, error) {
+func (productService *productService) GetProductByID(ctx context.Context, id int) (model.GetProductModel, error) {
 	response := model.GetProductModel{}
 	photoDatas := []model.FotoProdukModel{}
-
-	_, err := productService.TokoRepositoryInterface.FindByUserID(ctx, userID)
-	if err != nil {
-		return response, err
-	}
 
 	data, err := productService.ProductRepositoryInterface.FindByID(ctx, id)
 	if err != nil {
@@ -295,6 +307,11 @@ func (productService *productService) GetProductByID(ctx context.Context, id, us
 	}
 
 	tx := productService.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
 
 	photos, err := productService.FotoProdukRepositoryInterface.FindByProductID(ctx, tx, data.ID)
 	if err != nil {
@@ -327,6 +344,12 @@ func (productService *productService) GetProductByID(ctx context.Context, id, us
 			NamaCategory: data.Category.NamaCategory,
 		},
 		Photos: photoDatas,
+	}
+
+	err = tx.Commit().Error
+	if err != nil {
+		tx.Rollback()
+		return response, err
 	}
 
 	return response, nil

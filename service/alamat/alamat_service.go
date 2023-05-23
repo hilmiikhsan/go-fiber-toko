@@ -23,6 +23,11 @@ type alamatService struct {
 
 func (alamatService *alamatService) CreateAlamat(ctx context.Context, alamat model.AlamatModel, userID int) error {
 	tx := alamatService.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
 
 	alamatModel := entity.Alamat{
 		IdUser:       userID,
@@ -94,6 +99,11 @@ func (alamatService *alamatService) UpdateAlamatByID(ctx context.Context, id, us
 	}
 
 	tx := alamatService.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
 
 	alamatModel := entity.Alamat{
 		NamaPenerima: alamat.NamaPenerima,
@@ -123,6 +133,11 @@ func (alamatService *alamatService) DeleteAlamatByID(ctx context.Context, id, us
 	}
 
 	tx := alamatService.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
 
 	err = alamatService.AlamatRepositoryInterface.Delete(ctx, tx, alamatData, alamatData.ID, userID)
 	if err != nil {

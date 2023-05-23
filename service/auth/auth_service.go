@@ -63,6 +63,11 @@ func (authService *authService) Register(ctx context.Context, user model.AuthReg
 	}
 
 	tx := authService.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
 
 	id, err := authService.UserRepositoryInterface.Insert(ctx, tx, userData)
 	if err != nil {

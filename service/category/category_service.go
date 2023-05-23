@@ -36,6 +36,11 @@ func (categoryService *categoryService) CreateCategory(ctx context.Context, cate
 	}
 
 	tx := categoryService.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
 
 	categoryModel := entity.Category{
 		NamaCategory: category.NamaCategory,
@@ -71,6 +76,11 @@ func (categoryService *categoryService) UpdateCategoryByID(ctx context.Context, 
 	}
 
 	tx := categoryService.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
 
 	categoryModel := entity.Category{
 		NamaCategory: category.NamaCategory,
@@ -107,6 +117,11 @@ func (categoryService *categoryService) DeleteCategoryByID(ctx context.Context, 
 	}
 
 	tx := categoryService.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
 
 	err = categoryService.CategoryRepositoryInterface.Delete(ctx, tx, categoryData, categoryData.ID)
 	if err != nil {

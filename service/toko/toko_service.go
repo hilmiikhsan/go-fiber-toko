@@ -65,6 +65,11 @@ func (tokoService *tokoService) UpdateToko(ctx context.Context, namaToko string,
 	}
 
 	tx := tokoService.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
 
 	tokoModel := entity.Toko{
 		NamaToko: namaToko,
