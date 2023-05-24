@@ -18,3 +18,8 @@ type ParamsTokoModel struct {
 	Page  int    `query:"page"`
 	Nama  string `query:"nama"`
 }
+
+type GetTokoDetailModel struct {
+	NamaToko string `json:"nama_toko"`
+	UrlFoto  string `json:"url_foto"`
+}

@@ -25,3 +25,23 @@ func (detailTrxRepository *detailTrxRepository) BulkInsert(ctx context.Context, 
 
 	return nil
 }
+
+func (detailTrxRepository *detailTrxRepository) FindByIdTrx(ctx context.Context, idTrx int) ([]entity.DetailTrx, error) {
+	results := []entity.DetailTrx{}
+	err := detailTrxRepository.DB.WithContext(ctx).Where("detail_trx.id_trx = ?", idTrx).Find(&results).Error
+	if err != nil {
+		return results, err
+	}
+
+	return results, nil
+}
+
+func (detailTrxRepository *detailTrxRepository) FindByIDsTrx(ctx context.Context, idsTrx []int) ([]entity.DetailTrx, error) {
+	results := []entity.DetailTrx{}
+	err := detailTrxRepository.DB.WithContext(ctx).Where("detail_trx.id_trx IN ?", idsTrx).Find(&results).Error
+	if err != nil {
+		return results, err
+	}
+
+	return results, nil
+}

@@ -426,7 +426,7 @@ func (controller ProductController) GetAllProduct(c *fiber.Ctx) error {
 		Status:  true,
 		Message: "Succeed to GET data",
 		Errors:  nil,
-		Data: model.PaginationResponseProductModel{
+		Data: model.PaginationListResponse{
 			Data:  data,
 			Page:  params.Page,
 			Limit: params.Limit,

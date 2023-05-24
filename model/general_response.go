@@ -12,3 +12,9 @@ type PaginationResponse struct {
 	Limit int         `json:"limit"`
 	Data  interface{} `json:"data"`
 }
+
+type PaginationListResponse struct {
+	Data  interface{} `json:"data"`
+	Page  int         `json:"page"`
+	Limit int         `json:"limit"`
+}

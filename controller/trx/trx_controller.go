@@ -26,6 +26,7 @@ func NewTrxController(trxService *trx.TrxServiceInterface, config configuration.
 
 func (controller TrxController) Route(app *fiber.App) {
 	app.Post("/trx", middleware.AuthenticateJWT(controller.Config), controller.CreateTrx)
+	app.Get("/trx", middleware.AuthenticateJWT(controller.Config), controller.GetAllTrx)
 }
 
 func (controller TrxController) CreateTrx(c *fiber.Ctx) error {
@@ -85,5 +86,43 @@ func (controller TrxController) CreateTrx(c *fiber.Ctx) error {
 		Message: "Succeed to POST data",
 		Errors:  nil,
 		Data:    6,
+	})
+}
+
+func (controller TrxController) GetAllTrx(c *fiber.Ctx) error {
+	userID := c.Locals("id").(int)
+	params := new(struct {
+		model.ParamsTrxModel
+	})
+
+	err := c.QueryParser(params)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Status:  false,
+			Message: "Failed to GET data",
+			Errors:  []string{err.Error()},
+			Data:    nil,
+		})
+	}
+
+	data, err := controller.TrxServiceInterface.GetAllTrx(c.Context(), params, userID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(model.GeneralResponse{
+			Status:  false,
+			Message: "Failed to GET data",
+			Errors:  []string{err.Error()},
+			Data:    nil,
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(model.GeneralResponse{
+		Status:  true,
+		Message: "Succeed to GET data",
+		Errors:  nil,
+		Data: model.PaginationListResponse{
+			Data:  data,
+			Page:  params.Page,
+			Limit: params.Limit,
+		},
 	})
 }

@@ -35,7 +35,7 @@ func (fotoProdukRepository *fotoProdukRepository) Update(ctx context.Context, tx
 	return nil
 }
 
-func (fotoProdukRepository *fotoProdukRepository) FindByProductID(ctx context.Context, tx *gorm.DB, productID int) ([]entity.FotoProduk, error) {
+func (fotoProdukRepository *fotoProdukRepository) FindByProductID(ctx context.Context, productID int) ([]entity.FotoProduk, error) {
 	results := []entity.FotoProduk{}
 	err := fotoProdukRepository.DB.WithContext(ctx).Where("foto_produk.id_produk = ?", productID).Find(&results).Error
 	if err != nil {
@@ -50,6 +50,16 @@ func (fotoProdukRepository *fotoProdukRepository) FindAll(ctx context.Context, i
 	query := fotoProdukRepository.DB.Joins("JOIN produk ON foto_produk.id_produk = produk.id").Preload("Produk").Where("produk.id_toko IN (?)", idToko)
 
 	err := query.WithContext(ctx).Find(&results).Error
+	if err != nil {
+		return results, err
+	}
+
+	return results, nil
+}
+
+func (fotoProdukRepository *fotoProdukRepository) FindByProductIDs(ctx context.Context, productIDs []int) ([]entity.FotoProduk, error) {
+	results := []entity.FotoProduk{}
+	err := fotoProdukRepository.DB.WithContext(ctx).Where("foto_produk.id_produk IN (?)", productIDs).Find(&results).Error
 	if err != nil {
 		return results, err
 	}

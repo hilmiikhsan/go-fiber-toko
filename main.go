@@ -60,7 +60,7 @@ func main() {
 	tokoService := tokoService.NewTokoServiceInterface(&tokoRepository, db)
 	categoryService := categoryService.NewCategoryServiceInterface(&categoryRepository, db, &userRepository)
 	productService := productService.NewProductServiceInterface(&productRepository, db, &tokoRepository, &fotoProdukRepository, &categoryRepository)
-	trxService := trxService.NewTrxServiceInterface(&trxRepository, db, &alamatRepository, &productRepository, &logProductRepository, &detailTrxRepository)
+	trxService := trxService.NewTrxServiceInterface(&trxRepository, db, &alamatRepository, &productRepository, &logProductRepository, &detailTrxRepository, &fotoProdukRepository)
 	// httpBinService := httpbin.NewHttpBinServiceInterface(&httpBinRestClient)
 
 	// controller

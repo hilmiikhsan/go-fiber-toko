@@ -163,9 +163,8 @@ func (productService *productService) UpdateProductByID(ctx context.Context, pro
 		return err
 	}
 
-	fotoProdukData, err := productService.FotoProdukRepositoryInterface.FindByProductID(ctx, tx, productData.ID)
+	fotoProdukData, err := productService.FotoProdukRepositoryInterface.FindByProductID(ctx, productData.ID)
 	if err != nil {
-		tx.Rollback()
 		return err
 	}
 
@@ -313,9 +312,8 @@ func (productService *productService) GetProductByID(ctx context.Context, id int
 		}
 	}()
 
-	photos, err := productService.FotoProdukRepositoryInterface.FindByProductID(ctx, tx, data.ID)
+	photos, err := productService.FotoProdukRepositoryInterface.FindByProductID(ctx, data.ID)
 	if err != nil {
-		tx.Rollback()
 		return response, err
 	}
 

@@ -31,9 +31,3 @@ type GetProductModel struct {
 	Category      GetCategoryModel  `json:"category"`
 	Photos        []FotoProdukModel `json:"photos"`
 }
-
-type PaginationResponseProductModel struct {
-	Data  interface{} `json:"data"`
-	Page  int         `json:"page"`
-	Limit int         `json:"limit"`
-}
