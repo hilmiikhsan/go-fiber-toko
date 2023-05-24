@@ -113,13 +113,3 @@ func (productRepository *productRepository) FindAll(ctx context.Context, params 
 
 	return results, nil
 }
-
-func (productRepository *productRepository) FindByIDs(ctx context.Context, IDs []int) ([]entity.Produk, error) {
-	results := []entity.Produk{}
-	err := productRepository.DB.WithContext(ctx).Where("produk.id IN ?", IDs).Find(&results).Error
-	if err != nil {
-		return results, err
-	}
-
-	return results, nil
-}

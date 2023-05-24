@@ -249,6 +249,104 @@ func (trxService *trxService) GetAllTrx(ctx context.Context, params *struct{ mod
 	return response, nil
 }
 
+func (trxService *trxService) GetTrxByID(ctx context.Context, id, userID int) (model.GetTrxModel, error) {
+	response := model.GetTrxModel{}
+	detailTrxData := []model.GetDetailTrxModel{}
+
+	data, err := trxService.TrxRepositoryInterface.FindByID(ctx, id, userID)
+	if err != nil {
+		return response, err
+	}
+
+	trxDetailData, err := trxService.DetailTrxRepositoryInterface.FindByIdTrx(ctx, data.ID)
+	if err != nil {
+		return response, err
+	}
+
+	logProductIDs := make([]int, len(trxDetailData))
+	for i, dt := range trxDetailData {
+		logProductIDs[i] = dt.IdLogProduk
+	}
+
+	logProducts, err := trxService.LogProductRepositoryInterface.FindByIDsLogProduct(ctx, logProductIDs)
+	if err != nil {
+		return response, err
+	}
+
+	photoMap := make(map[int][]model.FotoProdukModel)
+	for i, logProducts := range logProducts {
+		logProductIDs[i] = logProducts.IdProduk
+
+		photos, err := trxService.FotoProdukRepositoryInterface.FindByProductIDs(ctx, logProductIDs)
+		if err != nil {
+			return response, err
+		}
+
+		photoMap = make(map[int][]model.FotoProdukModel)
+
+		for _, photo := range photos {
+			photoMap[photo.IdProduk] = append(photoMap[photo.IdProduk], model.FotoProdukModel{
+				ID:        photo.ID,
+				ProductID: photo.IdProduk,
+				Url:       photo.Url,
+			})
+		}
+	}
+
+	for _, detailTrx := range trxDetailData {
+		logProductData, err := trxService.LogProductRepositoryInterface.FindByIdLogProduct(ctx, detailTrx.IdLogProduk)
+		if err != nil {
+			return response, err
+		}
+
+		photoDatas := photoMap[logProductData.IdProduk]
+
+		detailTrxData = append(detailTrxData, model.GetDetailTrxModel{
+			Product: model.GetLogProductModel{
+				ID:            logProductData.IdProduk,
+				NamaProduk:    logProductData.NamaProduk,
+				Slug:          logProductData.Slug,
+				HargaReseller: logProductData.HargaReseller,
+				HargaKonsumen: logProductData.HargaKonsumen,
+				Deskripsi:     logProductData.Deskripsi,
+				Toko: model.GetTokoDetailModel{
+					NamaToko: logProductData.Toko.NamaToko,
+					UrlFoto:  logProductData.Toko.UrlFoto,
+				},
+				Category: model.GetCategoryModel{
+					ID:           logProductData.Category.ID,
+					NamaCategory: logProductData.Category.NamaCategory,
+				},
+				Photos: photoDatas,
+			},
+			Toko: model.GetTokoModel{
+				ID:       detailTrx.IdToko,
+				NamaToko: logProductData.Toko.NamaToko,
+				UrlFoto:  logProductData.Toko.UrlFoto,
+			},
+			Kuantitas:  detailTrx.Kuantitas,
+			HargaTotal: detailTrx.HargaTotal,
+		})
+	}
+
+	response = model.GetTrxModel{
+		ID:          data.ID,
+		HargaTotal:  data.HargaTotal,
+		KodeInvoice: data.KodeInvoice,
+		MethodBayar: data.MethodBayar,
+		AlamatKirim: model.GetAlamatModel{
+			ID:           data.Alamat.ID,
+			JudulAlamat:  data.Alamat.JudulAlamat,
+			NamaPenerima: data.Alamat.NamaPenerima,
+			NoTelp:       data.Alamat.NoTelp,
+			DetailAlamat: data.Alamat.DetailAlamat,
+		},
+		DetailTrx: detailTrxData,
+	}
+
+	return response, nil
+}
+
 func calculateHargaTotal(kuantitas, hargaKonsumen int) int {
 	return kuantitas * hargaKonsumen
 }

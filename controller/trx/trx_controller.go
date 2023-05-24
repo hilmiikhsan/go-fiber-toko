@@ -1,6 +1,7 @@
 package trx
 
 import (
+	"strconv"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
@@ -27,6 +28,7 @@ func NewTrxController(trxService *trx.TrxServiceInterface, config configuration.
 func (controller TrxController) Route(app *fiber.App) {
 	app.Post("/trx", middleware.AuthenticateJWT(controller.Config), controller.CreateTrx)
 	app.Get("/trx", middleware.AuthenticateJWT(controller.Config), controller.GetAllTrx)
+	app.Get("/trx/:id", middleware.AuthenticateJWT(controller.Config), controller.GetTrxByID)
 }
 
 func (controller TrxController) CreateTrx(c *fiber.Ctx) error {
@@ -124,5 +126,45 @@ func (controller TrxController) GetAllTrx(c *fiber.Ctx) error {
 			Page:  params.Page,
 			Limit: params.Limit,
 		},
+	})
+}
+
+func (controller TrxController) GetTrxByID(c *fiber.Ctx) error {
+	userID := c.Locals("id").(int)
+	idStr := c.Params("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Status:  false,
+			Message: "Failed to GET data",
+			Errors:  []string{"id is empty"},
+			Data:    nil,
+		})
+	}
+
+	data, err := controller.TrxServiceInterface.GetTrxByID(c.Context(), id, userID)
+	if err != nil {
+		if strings.Contains(err.Error(), constants.ErrTrxNotFound.Error()) {
+			return c.Status(fiber.StatusNotFound).JSON(model.GeneralResponse{
+				Status:  false,
+				Message: "Failed to GET data",
+				Errors:  []string{err.Error()},
+				Data:    nil,
+			})
+		}
+
+		return c.Status(fiber.StatusInternalServerError).JSON(model.GeneralResponse{
+			Status:  false,
+			Message: "Failed to GET data",
+			Errors:  []string{err.Error()},
+			Data:    nil,
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(model.GeneralResponse{
+		Status:  true,
+		Message: "Succeed to GET data",
+		Errors:  nil,
+		Data:    data,
 	})
 }

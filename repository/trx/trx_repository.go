@@ -2,6 +2,7 @@ package trx
 
 import (
 	"context"
+	"errors"
 
 	"github.com/hilmiikhsan/go_rest_api/entity"
 	"github.com/hilmiikhsan/go_rest_api/model"
@@ -56,4 +57,24 @@ func (trxRepository *trxRepository) FindAll(ctx context.Context, params *struct{
 	}
 
 	return results, nil
+}
+
+func (trxRepository *trxRepository) FindByID(ctx context.Context, id, userID int) (entity.Trx, error) {
+	trx := entity.Trx{}
+	query := trxRepository.DB.WithContext(ctx).
+		Table("trx").
+		Select("trx.*, alamat.id as alamat_id, alamat.judul_alamat, alamat.nama_penerima, alamat.no_telp, alamat.detail_alamat").
+		Joins("JOIN alamat ON trx.alamat_pengiriman = alamat.id").
+		Order("created_at DESC").
+		Where("trx.id = ?", id).
+		Where("trx.id_user = ?", userID)
+
+	query = query.Preload("Alamat")
+
+	result := query.Find(&trx)
+	if result.RowsAffected == 0 {
+		return entity.Trx{}, errors.New("No Data Trx")
+	}
+
+	return trx, nil
 }

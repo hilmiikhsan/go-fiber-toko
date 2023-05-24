@@ -305,13 +305,6 @@ func (productService *productService) GetProductByID(ctx context.Context, id int
 		return response, err
 	}
 
-	tx := productService.DB.Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-		}
-	}()
-
 	photos, err := productService.FotoProdukRepositoryInterface.FindByProductID(ctx, data.ID)
 	if err != nil {
 		return response, err
@@ -342,12 +335,6 @@ func (productService *productService) GetProductByID(ctx context.Context, id int
 			NamaCategory: data.Category.NamaCategory,
 		},
 		Photos: photoDatas,
-	}
-
-	err = tx.Commit().Error
-	if err != nil {
-		tx.Rollback()
-		return response, err
 	}
 
 	return response, nil
