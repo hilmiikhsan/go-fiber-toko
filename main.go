@@ -36,7 +36,6 @@ func main() {
 	// setup configuration
 	config := configuration.New()
 	db := configuration.NewDatabase(config)
-	// redis := configuration.NewRedis(config)
 
 	// repository
 	userRepository := userRepo.NewUserRepositoryInterface(db)
@@ -49,9 +48,6 @@ func main() {
 	logProductRepository := logProductRepo.NewLogProductRepositoryInterface(db)
 	detailTrxRepository := detailTrxRepo.NewDetailTrxRepository(db)
 
-	// rest client
-	// httpBinRestClient := restclient.NewHttpBinRestClient()
-
 	// service
 	authService := authService.NewAuthServiceInterface(&userRepository, &tokoRepository, db)
 	provinceService := provinceService.NewProvinceServiceInterface()
@@ -61,7 +57,6 @@ func main() {
 	categoryService := categoryService.NewCategoryServiceInterface(&categoryRepository, db, &userRepository)
 	productService := productService.NewProductServiceInterface(&productRepository, db, &tokoRepository, &fotoProdukRepository, &categoryRepository)
 	trxService := trxService.NewTrxServiceInterface(&trxRepository, db, &alamatRepository, &productRepository, &logProductRepository, &detailTrxRepository, &fotoProdukRepository)
-	// httpBinService := httpbin.NewHttpBinServiceInterface(&httpBinRestClient)
 
 	// controller
 	authController := auth.NewAuthController(&authService, config)
