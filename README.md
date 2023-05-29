@@ -1,4 +1,5 @@
-# Go Fiber Toko Clean Architecture
+# Tugas Akhir Rakamin Evermos Virtual Internship
+
 
 This project was created to learn golang with go fiber framework
 
